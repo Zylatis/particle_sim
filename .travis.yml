@@ -1,0 +1,7 @@
+dist: trusty
+language: cpp
+script:
+  - cmake -H. -Bbuild
+  - cmake --build build
+  - ./build/plummer_collision
+

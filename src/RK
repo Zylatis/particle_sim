@@ -1,0 +1,47 @@
+
+int Nx, Ny;
+// combines two intermediate states for Rk45
+vector<vector< double > > add_RK_vecs( const vector<vector< double > > &vec, const vector<vector< double > > &k_i , double h){
+	vector<vector< double > > out;
+	int ns = vec.size();
+	int l = vec[0].size();
+	out.resize(ns);
+	for(int i = 0; i<ns; i++){
+		out[i].resize(l);
+
+		for(int R = 0; R<l; R++){
+			out[i][R] = vec[i][R] + h*k_i[i][R];
+		}
+	}
+	return out;
+	
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Rk45 routine
+void RK_solve( const vector<vector< double > > &vec,  double dt  ){
+    vector<vector< double > > temp_state = vec;
+	vector< vector<double> > k1, k2, k3, k4;
+	vector< vector<double> > k1_in, k2_in, k3_in, k4_in;
+    int l = vec.size();
+
+	
+	//~ k1 = deriv( vec );
+	k2_in = add_RK_vecs( vec, k1, dt/2. );
+	
+	
+	k2 = rdot( k2_in );
+	k3_in = add_RK_vecs( vec, k2, dt/2. );
+	
+	k3 = rdot( k3_in );
+	k4_in = add_RK_vecs( vec, k3, dt );
+    
+    k4 = rdot( k4_in );
+	
+	for( int x = 0; x<Nx; x++){
+        for( int y = 0; y<Ny; y++){
+            temp_state[x][y]  = (dt/6.)*(k1[x][y] + 2.*k2[x][y] + 2.*k3[x][y] + k4[x][y]);
+        }
+    }
+}

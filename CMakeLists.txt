@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+set(CMAKE_CXX_STANDARD 11)
+project(particle_sim C CXX)
+include_directories(src)
+#~ file(MAKE_DIRECTORY output)
+FIND_PACKAGE ( OpenMP  REQUIRED )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11 -fopenmp ")
+add_executable(plummer_collision src/plummer_collision.cpp)
