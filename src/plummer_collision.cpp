@@ -121,7 +121,7 @@ int main ( int argc, char *argv[] ){
 	n = 200;
 	mass = 1./n;
 	int step(0), file_n(0);
-	double dt(0.1), t(0.), tmax(1000.);
+	double dt(0.1), t(0.), tmax(100.);
 	vector<double> blank(3, 0.);
 	vector<vector< double > > pos(n,blank), vel(n,blank), accel(n,blank);
 	
