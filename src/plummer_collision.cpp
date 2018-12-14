@@ -3,23 +3,10 @@ using namespace std;
 #include "imports.h"
 #include "math_objs.h"
 #include "particle_class.h"
-
+#include "io.h"
 int FILE_P = 15; // precision of outputs
 
 int n;
-
-void write_state( vector< vector< double>  >  &array, string file_name){
-
-	ofstream o;
-	string outputFolder = "output/data/";
-	int size = array.size();
-	string file = outputFolder+file_name+".dat";
-	o.open(file.c_str(), ios::out);
-	for(int i = 0; i<size; i++){
-		o<< array[i][0]<<"\t"<<array[i][1]<<"\t"<<array[i][2]<<endl;
-	}
-	o.close();
-}
 
 
 
@@ -152,7 +139,7 @@ int main ( int argc, char *argv[] ){
 	while(t<tmax){
 		do_step(pos, vel, dt);
 		if(step%10==0){
-			cout<<t<<endl;
+			//~ cout<<t<<endl;
 			temp = pos;
 			//~ auto out = async(launch::async, write_state, ref( temp ),to_string(file_n)+"_pos");
 			write_state(pos, to_string(file_n)+"_pos");

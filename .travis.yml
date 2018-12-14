@@ -4,3 +4,4 @@ script:
   - cmake -H. -Bbuild
   - cmake --build build
   - ./build/plummer_collision
+  - ./build/unit_tests
