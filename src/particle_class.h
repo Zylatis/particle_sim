@@ -4,25 +4,31 @@ class Particle {
 	protected:
 	public:
 		double mass_;
-		NDimVector pos_, vel_;
+		NDimVector pos_, vel_, force_;
 		int dim;
 	
 	// pass in as N-dim STL vector
 	Particle( double mass, vector<double> pos, vector<double> vel ) :
-		mass_( mass ), pos_( NDimVector( pos ) ), vel_( NDimVector( vel ) ), dim( pos_.len) {};	 // correct way to do this?
+		mass_( mass ), pos_( NDimVector( pos ) ), vel_( NDimVector( vel ) ), dim( pos_.len) {
+			force_.resize( dim );
+		};	 // correct way to do this?
 	
 	// calculate force vector on given particle
-	void force( vector<Particle*> &particles ){		
-		NDimVector dr_vec, F;
+	void force( vector<Particle*> &swarm ){		
+		NDimVector dr_vec(3), temp( dim );
 		double mag;
-		for(auto particle : particles ){
-			dr_vec = particle->pos_ - pos_;
-			mag = dr_vec.mag();
-			
-			for( int i = 0; i < dim; i++ ){
-				F[i] = dr_vec[i]/(eps+pow(mag,3));
+		//~ force_.fill(0.);
+		for(auto particle : swarm ){
+			for(int i = 0; i<dim; i++){
+				dr_vec[i]= (particle->pos_)[i] - pos_[i];
 			}
+			mag = dr_vec.mag();	
+			for( int i = 0; i < dim; i++ ){
+			if(mag!=0){
+				temp[i] += dr_vec[i]*G*mass/(eps+pow(mag,3));
+				}
+			}				
 		}
+		force_ = temp;
 	}
-
 };

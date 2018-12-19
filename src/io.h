@@ -12,6 +12,19 @@ void write_state( vector< vector< double>  >  &array, string file_name){
 	o.close();
 }
 
+void write_state(const  vector<Particle*> &swarm, const string &file_name  ){
+	vector<double> pos(n,0), vec(n,0);
+	ofstream o;
+	string outputFolder = "output/data/";
+	int size = swarm.size();
+	string file = outputFolder+file_name+".dat";
+	o.open(file.c_str(), ios::out);
+	for( auto &particle : swarm ){
+		o<< particle->pos_[0]<<"\t"<<particle->pos_[1]<<"\t"<<particle->pos_[2]<<endl;
+	}
+	o.close();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 //Read in BO wfn file
 vector< vector<double> > FileRead( string filename){
