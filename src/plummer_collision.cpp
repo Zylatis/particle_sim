@@ -2,7 +2,6 @@ using namespace std;
 
 #include "imports.h"
 #include "math_objs.h"
-#include "particle_class.h"
 #include "io.h"
 int FILE_P = 15; // precision of outputs
 
@@ -14,11 +13,10 @@ int n;
 vector<double> diff_vec(  const vector<vector< double > >&pos_vec , int i, int j){
 	
 	vector<double> out(3);
-	
-	out[0] = pos_vec[i][0] - pos_vec[j][0];
-	out[1] = pos_vec[i][1] - pos_vec[j][1];
-	out[2] = pos_vec[i][2] - pos_vec[j][2];
-	
+	for(int k = 0; k<3;k++){
+		out[k] = pos_vec[i][k] - pos_vec[j][k];
+	}
+
 	return out;
 }
 
@@ -33,14 +31,13 @@ vector<vector< double > > force( const vector<vector< double > > &pos_vec ){
 	
 	#pragma omp parallel for
 	for(int i = 0; i< n; i++){
-	    
 		for(int j = 0; j<n; j++){
 			if(i!=j){
 				vector<double> drvec = diff_vec(pos_vec, j, i);				
 				double rmag = get_mag(drvec);
-				out[i][0] += G*mass*drvec[0]/(eps+pow(rmag,3));
-				out[i][1] += G*mass*drvec[1]/(eps+pow(rmag,3));
-				out[i][2] += G*mass*drvec[2]/(eps+pow(rmag,3));
+				for(int k = 0; k<3;k++){
+					out[i][k] += G*mass*drvec[k]/(eps+pow(rmag,3));
+				}
 			}
 		}
 	}
@@ -51,18 +48,18 @@ vector<vector< double > > force( const vector<vector< double > > &pos_vec ){
 
 
 void do_step( vector<vector< double > > &pos, vector<vector< double > > &vel, double dt){
-	//~ #pragma omp parallel for
+	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
-		pos[i][0] += vel[i][0]*dt;
-		pos[i][1] += vel[i][1]*dt;
-		pos[i][2] += vel[i][2]*dt;
+		for(int k = 0; k<3;k++){
+			pos[i][k] += vel[i][k]*dt;
+		}
 	}
 	vector<vector< double> > accel = force(pos);
-	//~ #pragma omp parallel for
+	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
-		vel[i][0] += accel[i][0]*dt;
-		vel[i][1] += accel[i][1]*dt;
-		vel[i][2] += accel[i][2]*dt;
+		for(int k = 0; k<3;k++){
+			vel[i][k] += accel[i][k]*dt;
+		}
 	}
 }
 
@@ -102,23 +99,23 @@ vector<vector<double> > init(  default_random_engine &rands, const vector<double
 
 // Main simulation
 int main ( int argc, char *argv[] ){
-	omp_set_num_threads( 2 );
+	omp_set_num_threads( 4 );
 	srand(1);
 	default_random_engine rands;
 	n = 200;
 	mass = 1./n;
 	int step(0), file_n(0);
-	double dt(0.1), t(0.), tmax(100.);
+	double dt(0.1), t(0.), tmax(200.);
 	vector<double> blank(3, 0.);
 	vector<vector< double > > pos(n,blank), vel(n,blank), accel(n,blank);
 	
-	for(int i = 0; i<n-100; i++){	
+	for(int i = 0; i<n/2; i++){	
 		vector<vector<double> > temp = init( rands,{0,0,0},{0,0,0});
 		pos[i] = temp[0];
 		vel[i] = temp[1];
 	}
 	
-	for(int i = n-100; i<n; i++){	
+	for(int i = n/2; i<n; i++){	
 		vector<vector<double> > temp = init( rands,{30.,0,0},{-.02,0,0});
 		pos[i] = temp[0];
 		vel[i] = temp[1];
@@ -128,9 +125,10 @@ int main ( int argc, char *argv[] ){
 	
 	accel = force(pos);
 	for(int i = 0; i<n; i++){
-		vel[i][0] += accel[i][0]*dt/2.;
-		vel[i][1] += accel[i][1]*dt/2.;
-		vel[i][2] += accel[i][2]*dt/2.;
+		for(int k = 0; k<3;k++){
+			vel[i][k] += accel[i][k]*dt/2.;
+		}
+		
 	}
 	vector<vector<double> > temp;
 	double perc = 0;
@@ -139,7 +137,7 @@ int main ( int argc, char *argv[] ){
 	while(t<tmax){
 		do_step(pos, vel, dt);
 		if(step%10==0){
-			//~ cout<<t<<endl;
+			cout<<t<<endl;
 			temp = pos;
 			//~ auto out = async(launch::async, write_state, ref( temp ),to_string(file_n)+"_pos");
 			write_state(pos, to_string(file_n)+"_pos");
