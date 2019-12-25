@@ -3,9 +3,9 @@ using namespace std;
 #include "imports.h"
 #include "global_vars.h"
 #include "math_objs.h"
-#include "particle_class.h"
+#include "state_class.h"
 #include "integrators.h"
-#include "io.h"
+//~ #include "io.h"
 
 
 vector<vector<double> > plummer_init(  default_random_engine &rands, const vector<double> &centre, const vector<double> &centre_V ){
@@ -49,29 +49,15 @@ int main ( int argc, char *argv[] ){
 	mass = 1./n;
 	dt = 0.1;
 	tmax = 100;	
-	vector<Particle*> swarm;
-	
-	for(int i = 0; i<n; i++){	
-		vector<vector<double> > temp = plummer_init( rands, {0,0,0}, {0,0,0} );
-		Particle* p = new Particle( mass, temp[0], temp[1] );
-		swarm.push_back( p );
-	}
-	
-	leap_frog_init( swarm );
-	double perc = 0;
-	write_state(swarm, to_string(file_n)+"_pos");
-	double wt = get_wall_time();
-	while(t<tmax){
-		leap_frog( swarm );
-		if(step%10==0){
-			cout<<t<<endl;
-			//~ temp = pos;
-			write_state(swarm, to_string(file_n)+"_pos");
-			file_n++;
+	vector<vector<double> > pos(n,vector<double>(3,0)), vel(n,vector<double>(3,0)), force(n,vector<double>(3,0));
+	vector<vector<double> > temp(2,vector<double>(3,0));
+	for(int i = 0; i<n; i++){
+		temp = plummer_init(rands, {0,0,0},{0,0,0});
+		for(int j = 0; j<3;j++){
+			pos[i][j] = temp[0][j];
+			vel[i][j] = temp[1][j];
 		}
-		
 	}
 	
-	cout<< ( get_wall_time() - wt )<<endl;
 	return 0;
 }
