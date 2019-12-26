@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 using namespace std;
-#include "headers/catch.hpp"
+#include "include/catch.hpp"
 #include "io.h"
 
 TEST_CASE( "Final result", "[overall]" ) {

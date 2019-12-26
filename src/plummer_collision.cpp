@@ -3,11 +3,10 @@ using namespace std;
 #include "imports.h"
 #include "math_objs.h"
 #include "io.h"
+// #include "include/cxxopts.hpp"
+
 int FILE_P = 15; // precision of outputs
-
 int n;
-
-
 
 // Get delta - r
 vector<double> diff_vec(  const vector<vector< double > >&pos_vec , int i, int j){
@@ -44,8 +43,6 @@ vector<vector< double > > force( const vector<vector< double > > &pos_vec ){
 	
 	return out;	
 }
-
-
 
 void do_step( vector<vector< double > > &pos, vector<vector< double > > &vel, double dt){
 	#pragma omp parallel for
@@ -99,10 +96,13 @@ vector<vector<double> > init(  default_random_engine &rands, const vector<double
 
 // Main simulation
 int main ( int argc, char *argv[] ){
+
+
+
 	omp_set_num_threads( 4 );
 	srand(1);
 	default_random_engine rands;
-	n = 200;
+	n = 1000;
 	mass = 1./n;
 	int step(0), file_n(0);
 	double dt(0.1), t(0.), tmax(200.);
@@ -120,8 +120,6 @@ int main ( int argc, char *argv[] ){
 		pos[i] = temp[0];
 		vel[i] = temp[1];
 	}
-	
-	
 	
 	accel = force(pos);
 	for(int i = 0; i<n; i++){

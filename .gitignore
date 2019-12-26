@@ -1,2 +1,6 @@
-sim.exe
-sim
+output/data/*
+output/movies/*
+output/plots/*
+!output/data/.gitkeep
+!output/movies/.gitkeep
+!output/plots/.gitkeep
