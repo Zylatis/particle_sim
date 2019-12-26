@@ -103,16 +103,46 @@ int main ( int argc, char *argv[] ){
 	po::options_description desc("Options"); 
     desc.add_options() 
       ("help", "Print help messages") 
-      ("add", "additional options") 
-      ("like", "this"); 
+      ("npar", po::value<int>(), "number of particles") 
+      ("nproc", po::value<int>(),"number of processes"); 
 
+    vector<string> req_pars = {"nproc", "npar"};
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+    if (vm.count("help")) {
+        cout << desc << "\n";
+        return 0;
+    }
+
+    vector<string> missing_pars = {};
+    for(auto p : req_pars){
+    	if(vm.count(p) == 0){
+    		missing_pars.push_back(p);
+    	}
+    }
+    if(missing_pars.size()!=0){
+    	string failed = "";
+	   	for(int i = 0; i<missing_pars.size();i++){
+	   		if(i==0){
+	   			failed += missing_pars[i];
+	   		} else {
+	   			failed += ", " + missing_pars[i];
+	   		}
+    	}
+
+    	cout<<"Was not given following required pars: " + failed<<endl;
+    	return 0;
+    }
+   
     empty_folder("output/data/",".dat");
 	empty_folder("output/plots/",".png");
 	
-	omp_set_num_threads( 4 );
+	omp_set_num_threads( vm["nproc"].as<int>()  );
 	srand(1);
 	default_random_engine rands;
-	n = 200;
+	n = vm["npar"].as<int>();
 	mass = 1./n;
 	int step(0), file_n(0);
 	double dt(0.1), t(0.), tmax(200.);
