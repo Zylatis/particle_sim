@@ -17,9 +17,10 @@ int main ( int argc, char *argv[] ){
     desc.add_options() 
       ("help", "Print help messages") 
       ("npar", po::value<int>(), "number of particles") 
-      ("nproc", po::value<int>(),"number of processes"); 
+      ("nproc", po::value<int>(),"number of processes")
+      ("tmax", po::value<int>(), "max time") ; 
 
-    vector<string> req_pars = {"nproc", "npar"};
+    vector<string> req_pars = {"nproc", "npar" , "tmax"};
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -52,13 +53,13 @@ int main ( int argc, char *argv[] ){
     empty_folder("output/data/",".dat");
 	empty_folder("output/plots/",".png");
 	
-	omp_set_num_threads( vm["nproc"].as<int>()  );
+	omp_set_num_threads( vm["nproc"].as<int>() );
 	srand(1);
 	default_random_engine rands;
 	n = vm["npar"].as<int>();
 	mass = 1./n;
 	int step(0), file_n(0);
-	double dt(0.1), t(0.), tmax(200.);
+	double dt(0.1), t(0.), tmax( vm["tmax"].as<int>() );
 	vector<double> blank(3, 0.);
 	vector<vector< double > > pos(n,blank), vel(n,blank);
 	
