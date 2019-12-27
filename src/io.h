@@ -68,3 +68,23 @@ void empty_folder( string folder_path, string extension){
     }
 
 }
+
+
+void progress(double perc){
+    //https://stackoverflow.com/questions/44987147/progress-bar-c
+    int bar_l = 30;
+    int pos = perc * bar_l;
+
+    cout << "[";
+    for(int i=0; i != bar_l; ++i)
+    {
+        if(i < pos)
+            cout << "#";
+        else
+            cout << " ";
+    }
+    cout << "] " + to_string((int) round(100*perc)) + "% \r";
+}
+
+
+
