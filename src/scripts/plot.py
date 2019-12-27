@@ -4,11 +4,11 @@ import random
 import pandas as pd
 from random import randrange, uniform
 n = len(pd.read_csv("../../output/data/"+str(0)+"_pos.dat", sep='\t'))
-sizes = [ uniform(1, 2) for i in range(n) ]
+sizes = [ uniform(0.1, 1) for i in range(n) ]
 
-for i in range(500):
+for i in range(0,300):
 	print i
-	fig = pyplot.figure(figsize=pyplot.figaspect(1)*3)
+	fig = pyplot.figure(figsize=pyplot.figaspect(1))
 	ax = Axes3D(fig)
 	ax.set_xlim3d(-20,20)
 	ax.set_ylim3d(-20,20)
