@@ -2,16 +2,16 @@
 
 This code is an experiment in C++ using an astrophysical N-body sim as a model problem. 
 
-![Example](example.gif)
+<!-- ![Example](example.gif) -->
 
-##Algorithm
+## Algorithm
 Currently the code only uses a basic O(N^2) (without symmetry) algorithm to compute the forces and then the leapfrog algorithm to do time propagation.
 
 There is one branch playing with encapsulating the particle data in a Particle class, the idea being that down the line we could play with different particle types and properties, but the breaking of cache locality in this situation seemed to have a big performance hit, so the master branch now just works on sets of vectors.
 
-Currently the code is setup to do a boring collision of two Plummer spheres (see above gif) but more interesting things are planned.
+Currently the code is setup to do a boring collision of two Plummer spheres but more interesting things are planned.
 
-##Building and running
+## Building and running
 Simply run
 
 ```
