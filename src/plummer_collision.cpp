@@ -70,7 +70,7 @@ int main ( int argc, char *argv[] ){
 	int step(0), file_n(0);
 	double dt(0.1), t(0.), tmax( vm["tmax"].as<int>() );
 	vector<double> blank(3, 0.);
-	vector<vector< double > > pos(n,blank), vel(n,blank);//, force(n,blank);
+	vector<vector< double > > pos(n,blank), vel(n,blank), force(n,blank);
 
 	
 	// Lazy setup of cluster 1
@@ -88,7 +88,7 @@ int main ( int argc, char *argv[] ){
 	}
 
 	double totalE = 0.;
-	leapfrog_init_step(pos, vel, dt, n, totalE) ;
+	leapfrog_init_step(pos, vel, force, dt, n, totalE) ;
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	
 	double perc = 0;
@@ -96,7 +96,7 @@ int main ( int argc, char *argv[] ){
 	double wt = get_wall_time();
 	while(t<tmax){
 		
-		leapfrog_step(pos, vel, dt, n, totalE);
+		leapfrog_step(pos, vel, force, dt, n, totalE);
 		if(step%10==0){
 			// cout<<t<<endl;
 			write_state(pos, to_string(file_n)+"_pos");
