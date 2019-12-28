@@ -70,7 +70,7 @@ void empty_folder( string folder_path, string extension){
 }
 
 
-void progress(double perc){
+void progress(double perc, double totalE){
     //https://stackoverflow.com/questions/44987147/progress-bar-c
     int bar_l = 30;
     int pos = perc * bar_l;
@@ -83,7 +83,7 @@ void progress(double perc){
         else
             cout << " ";
     }
-    cout << "] " + to_string((int) round(100*perc)) + "% \r";
+    cout << "] " + to_string((int) round(100*perc)) + "%, totalE:" + to_string(totalE) +"\r";
 }
 
 

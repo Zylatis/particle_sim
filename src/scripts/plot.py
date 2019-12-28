@@ -6,7 +6,7 @@ from random import randrange, uniform
 n = len(pd.read_csv("../../output/data/"+str(0)+"_pos.dat", sep='\t'))
 sizes = [ uniform(0.1, 1) for i in range(n) ]
 
-for i in range(0,300):
+for i in range(0,1000):
 	print i
 	fig = pyplot.figure(figsize=pyplot.figaspect(1))
 	ax = Axes3D(fig)
