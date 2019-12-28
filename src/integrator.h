@@ -1,7 +1,9 @@
+#include <assert.h> 
+#define likely(x)       __builtin_expect(!!(x), 1)
 
 // Get delta - r
 vector<double> diff_vec(  const vector<vector< double > >&pos_vec , const int &i, const int &j){
-	
+	// Note that currently this is called inside a pragma parallel loop so no point parallelising here
 	vector<double> out(3);
 	for(int k = 0; k<3;k++){
 		out[k] = pos_vec[i][k] - pos_vec[j][k];
@@ -16,35 +18,36 @@ double get_mag( const vector<double> &pos_vec ){
 }
 
 // Calc force
-vector<vector< double > > force( const vector<vector< double > > &pos_vec, const vector<vector< double > > &vel_vec, const int &n, double &totalE ){
+vector<vector< double > > force( const vector<vector< double > > &pos_vec, const vector<vector< double > > &vel_vec, int n, double totalE ){
 	vector<vector< double > >  out(n, vector<double>(3,0));
 	totalE = 0.;	
+	
 	#pragma omp parallel for
 	for(int i = 0; i< n; i++){
-		// for(int j = i+1; j<n; j++){
-		double vmag = get_mag(vel_vec[i]);
+		// double vmag = get_mag(vel_vec[i]);
 
-		#pragma omp atomic
-		totalE += mass*vmag*vmag*0.5;
+		// #pragma omp atomic
+		// totalE += mass*vmag*vmag*0.5;
+
 		for(int j = 0; j<n; j++){
+			// if(likely(i!=j)){
 			if(i!=j){
 				vector<double> drvec = diff_vec(pos_vec, j, i);				
 				double rmag = get_mag(drvec);
 				
 				for(int k = 0; k<3;k++){
 					out[i][k] += G*mass*drvec[k]/(eps+pow(rmag,3));
-					// #pragma omp atomic
+					// #pragma omp atomic 
 					// out[j][k] += -G*mass*drvec[k]/(eps+pow(rmag,3));
 				}
-				#pragma omp atomic
-				totalE += -G*mass*mass/rmag;
+				// #pragma omp atomic
+				// totalE += -G*mass*mass/rmag;
 				
 			}
 		}
 	}
 	return out;	
 }
-
 
 void leapfrog_step( vector<vector< double > > &pos, vector<vector< double > > &vel, const double &dt, const int &n, double &totalE){
 	#pragma omp parallel for
@@ -65,6 +68,7 @@ void leapfrog_step( vector<vector< double > > &pos, vector<vector< double > > &v
 // Initial t0 leapfrog step
 void leapfrog_init_step( const vector<vector<double> > &pos, vector< vector<double> > &vel, const double &dt, const int &n, double &totalE){
 	vector<vector<double> > accel = force(pos, vel, n, totalE);
+	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
 			vel[i][k] += accel[i][k]*dt/2.;

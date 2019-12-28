@@ -1,5 +1,7 @@
 
 // for now assuming all particles are same, maybe gas 'n shit is different later
+// basically this is valarray...hurrr
+// Needs expression templates!
 class NDimVector {
 	private:
 	

@@ -2,10 +2,11 @@ using namespace std;
 
 #include "imports.h"
 #include "io.h"
+#include "math_objs.h"
 #include "init_conditions.h"
 #include "integrator.h"
 #include "boost/program_options.hpp" 
-
+#include "barnes_hutt_objs.h"
 namespace po = boost::program_options;
 
 int FILE_P = 15; // precision of outputs
@@ -69,7 +70,8 @@ int main ( int argc, char *argv[] ){
 	int step(0), file_n(0);
 	double dt(0.1), t(0.), tmax( vm["tmax"].as<int>() );
 	vector<double> blank(3, 0.);
-	vector<vector< double > > pos(n,blank), vel(n,blank);
+	vector<vector< double > > pos(n,blank), vel(n,blank);//, force(n,blank);
+
 	
 	// Lazy setup of cluster 1
 	for(int i = 0; i<n/2; i++){	
