@@ -18,7 +18,7 @@ double get_mag( const vector<double> &pos_vec ){
 }
 
 // Calc force
-void calc_force( const vector<vector< double > > &pos_vec, const vector<vector< double > > &vel_vec,vector<vector< double > > &force, int n, double totalE ){
+void calc_force( const vector<vector< double > > &pos_vec, const vector<vector< double > > &vel_vec,vector<vector< double > > &force, int n, double &totalE ){
 	// vector<vector< double > >  out(n, vector<double>(3,0));
 	totalE = 0.;	
 	
@@ -54,7 +54,7 @@ void calc_force( const vector<vector< double > > &pos_vec, const vector<vector< 
 	// return out;	
 }
 
-void leapfrog_step( vector<vector< double > > &pos, vector<vector< double > > &vel, vector< vector<double> > &force, const double &dt, const int &n, double &totalE){
+void leapfrog_step( vector<vector< double > > &pos, vector<vector< double > > &vel, vector< vector<double> > &force, double dt, int n, double &totalE){
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
@@ -73,7 +73,7 @@ void leapfrog_step( vector<vector< double > > &pos, vector<vector< double > > &v
 }
 
 // Initial t0 leapfrog step
-void leapfrog_init_step( const vector<vector<double> > &pos, vector< vector<double> > &vel, vector< vector<double> > &force, const double &dt, const int &n, double &totalE){
+void leapfrog_init_step( const vector<vector<double> > &pos, vector< vector<double> > &vel, vector< vector<double> > &force, double dt, int n, double &totalE){
 	// vector<vector<double> > accel = force(pos, vel, n, totalE);
 	calc_force(pos, vel, force, n, totalE);
 
