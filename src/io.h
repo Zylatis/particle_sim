@@ -14,35 +14,6 @@ void write_state( vector< vector< double>  >  &array, string file_name){
 	o.close();
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-//Read in BO wfn file
-vector< vector<double> > FileRead( string filename){
-    vector< vector<double> > vvv;
-    int i = 0;
-    string line;
-
-    fstream in(filename.c_str());
-    if(!in.is_open()){
-		cout<<"Bugger: unable to open file "+filename+" - exiting."<<endl;
-		exit(0);
-	}
-	while (std::getline(in, line))
-    {
-        double value;
-        stringstream ss(line);
-
-        vvv.push_back(vector<double>());
-
-        while (ss >> value)
-        {
-            vvv[i].push_back(value);
-        }
-        ++i;
-    }
-    return vvv;
-}
-
-
 void empty_folder( string folder_path, string extension){
     // https://stackoverflow.com/questions/6935279/delete-all-txt-in-a-directory-with-c
     // This needs to be extension-aware so we don't bin our .gitignore files

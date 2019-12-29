@@ -18,36 +18,35 @@ double get_mag( const vector<double> &pos_vec ){
 }
 
 // Calc force
-void calc_force( const vector<vector< double > > &pos_vec, const vector<vector< double > > &vel_vec,vector<vector< double > > &force, int n, double &totalE ){
-	// vector<vector< double > >  out(n, vector<double>(3,0));
+void calc_force( const vector<vector< double > > &pos_vec, const vector<vector< double > > &vel_vec, vector<vector< double > > &force, int n, double &totalE ){
 	totalE = 0.;	
 	
 	#pragma omp parallel for
 	for(int i = 0; i< n; i++){
 
-		// Lazy zeroing - would be easier if we had strides!
+		// Lazy zeroing 
 		for(int k = 0; k<3;k++){
-			force[i][k] = 0.;
+			fill(force[i].begin(), force[i].end(), 0.);
 		}
-		// double vmag = get_mag(vel_vec[i]);
+		double vmag = get_mag(vel_vec[i]);
 
-		// #pragma omp atomic
-		// totalE += mass*vmag*vmag*0.5;
+		#pragma omp atomic
+		totalE += mass*vmag*vmag*0.5;
 
 		for(int j = 0; j<n; j++){
-			// if(likely(i!=j)){
-			if(i!=j){
+			if(likely(i!=j)){
+			// if(i!=j){
 				vector<double> drvec = diff_vec(pos_vec, j, i);				
 				double rmag = get_mag(drvec);
 				
 				for(int k = 0; k<3;k++){
-					force[i][k] += G*mass*drvec[k]/(eps+pow(rmag,3));
+					force[i][k] += G*mass*drvec[k]/(eps+rmag*rmag*rmag);
 					// #pragma omp atomic 
 					// out[j][k] += -G*mass*drvec[k]/(eps+pow(rmag,3));
 				}
-				// #pragma omp atomic
-				// totalE += -G*mass*mass/rmag;
-				
+
+				#pragma omp atomic
+				totalE += -G*mass*mass/rmag;
 			}
 		}
 	}

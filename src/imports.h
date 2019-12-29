@@ -17,6 +17,8 @@
 #include <sys/stat.h>
 #include <random>
 #include <future>
+#include <array>
+
 double get_wall_time(){
     struct timeval time;
     if (gettimeofday(&time,NULL)){
