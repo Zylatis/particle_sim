@@ -14,6 +14,19 @@ void write_state( vector< vector< double>  >  &array, string file_name){
 	o.close();
 }
 
+void write_state( vector< double >  &array, string file_name){
+
+    ofstream o;
+    string outputFolder = "output/data/";
+    int size = array.size()/3;
+    string file = outputFolder+file_name+".dat";
+    o.open(file.c_str(), ios::out);
+    for(int i = 0; i<size; i++){
+        o<< array[3*i]<<"\t"<<array[3*i+1]<<"\t"<<array[3*i+2]<<endl;
+    }
+    o.close();
+}
+
 void empty_folder( string folder_path, string extension){
     // https://stackoverflow.com/questions/6935279/delete-all-txt-in-a-directory-with-c
     // This needs to be extension-aware so we don't bin our .gitignore files
