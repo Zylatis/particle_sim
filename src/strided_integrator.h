@@ -1,22 +1,6 @@
 #include <assert.h> 
 #define likely(x)       __builtin_expect(!!(x), 1)
 
-// Get delta - r
-// vector<double> diff_vec(  const vector<vector< double > >&pos_vec , const int &i, const int &j){
-// 	// Note that currently this is called inside a pragma parallel loop so no point parallelising here
-// 	vector<double> out(3);
-// 	for(int k = 0; k<3;k++){
-// 		out[k] = pos_vec[i][k] - pos_vec[j][k];
-// 	}
-
-// 	return out;
-// }
-
-// Get magnitude
-// double get_mag( const vector<double> &pos_vec ){
-	// return sqrt(pow(pos_vec[0],2.) + pow(pos_vec[1],2.) + pow(pos_vec[2],2.));
-// }
-
 // Calc force
 void calc_force_strided( const vector<double> &strided_pos_vec, const vector<double > &strided_vel_vec, vector<double > &strided_force, int n, double &totalE, vector<vector<double > > &strided_force_threadcpy ){
 	totalE = 0.;	
@@ -54,14 +38,11 @@ void calc_force_strided( const vector<double> &strided_pos_vec, const vector<dou
 		for(int tid = 0; tid<n_threads;tid++){
         	strided_force[i] += strided_force_threadcpy[tid][i];
    	 	}
-	}	
-	
-       
-	
+	}		
 }
 
 void leapfrog_step_strided( vector< double > &strided_pos, vector< double > &strided_vel, vector< double > &strided_force, double dt, int n, double &totalE,  vector<vector<double > > &strided_force_threadcpy){
-	// #pragma omp parallel for
+	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] += strided_vel[3*i+k]*dt;
@@ -69,7 +50,7 @@ void leapfrog_step_strided( vector< double > &strided_pos, vector< double > &str
 	}
 	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
 
-	// #pragma omp parallel for
+	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
 			strided_vel[3*i+k] += strided_force[3*i+k]*dt;

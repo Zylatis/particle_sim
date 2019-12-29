@@ -79,18 +79,13 @@ int main ( int argc, char *argv[] ){
 	mass = 1./n;
 	int step(0), file_n(0);
 	double dt(0.1), t(0.), totalE(0.), tmax( vm["tmax"].as<int>() );
-	vector<double> blank(3, 0.);
-	vector<vector< double > > pos(n,blank), vel(n,blank), force(n,blank);
 
 	vector<double> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<double> > strided_force_threadcpy(n_threads, vector<double>(3*n,0));
+	
 	// Lazy setup of cluster 1
-	// #pragma omp parallel for
 	for(int i = 0; i<n/2; i++){	
 		vector<vector<double> > temp = init( rands,{-10.,-10.,-10.},{0.06,0.02,0.02});
-		pos[i] = temp[0];
-		vel[i] = temp[1];
-
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] = temp[0][k];
 			strided_vel[3*i+k] = temp[1][k];
@@ -98,45 +93,26 @@ int main ( int argc, char *argv[] ){
 	}
 
 	// Lazy setup of cluster 2
-	// #pragma omp parallel for	
 	for(int i = n/2; i<n; i++){	
 		vector<vector<double> > temp = init( rands,{10.,10.,10.},{-.07,-0.01,-0.02});
-		pos[i] = temp[0];
-		vel[i] = temp[1];
-	
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] = temp[0][k];
 			strided_vel[3*i+k] = temp[1][k];
 		}
 	}
 
-	// calc_force(pos, vel, force, n, totalE);
-	// calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
-	// cout<<force[0][0]<<"\t"<<force[0][1]<<"\t"<<force[0][2]<<endl;
-	// cout<<strided_force[3*0+0]<<"\t"<<strided_force[3*0+1]<<"\t"<<strided_force[3*0+2]<<endl;
-	// cout<<endl;
-	// cout<<force[3][0]<<"\t"<<force[3][1]<<"\t"<<force[3][2]<<endl;
-	// cout<<strided_force[3*3+0]<<"\t"<<strided_force[3*3+1]<<"\t"<<strided_force[3*3+2]<<endl;
-	// exit(0);
-	// cout<<vel[0][0]<<"\t"<<vel[0][1]<<"\t"<<vel[0][2]<<endl;
-	// cout<<strided_vel[3*0+0]<<"\t"<<strided_vel[3*0+1]<<"\t"<<strided_vel[3*0+2]<<endl;
-
-	leapfrog_init_step(pos, vel, force, dt, n, totalE) ;
+	// Init leapfrom half step
 	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
 	
-	
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
-	int xx = 12;
 	double perc = 0;
 	write_state(strided_pos, to_string(file_n)+"_pos");
 	double wt = get_wall_time();
 	while(t<tmax){
 	
 		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
-		leapfrog_step(pos, vel, force, dt, n, totalE);
 		if(step%10==0){
-			// write_state(strided_pos, to_string(file_n)+"_pos");
-			// write_state(pos, to_string(file_n) + "_pos");
+			write_state(strided_pos, to_string(file_n)+"_pos");
 			file_n++;
 		}
 		t += dt;
@@ -146,7 +122,5 @@ int main ( int argc, char *argv[] ){
 
 	cout<<"\n"<<endl;
 	cout<< "Total time: " <<setprecision(3) <<( get_wall_time() - wt )<<"s"<<endl;
-	cout<<force[100][0]<<"\t"<<force[100][1]<<"\t"<<force[100][2]<<endl;
-	cout<<strided_force[3*100+0]<<"\t"<<strided_force[3*100+1]<<"\t"<<strided_force[3*100+2]<<endl;
 	return 0;
 }
