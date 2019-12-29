@@ -121,47 +121,22 @@ int main ( int argc, char *argv[] ){
 	// cout<<vel[0][0]<<"\t"<<vel[0][1]<<"\t"<<vel[0][2]<<endl;
 	// cout<<strided_vel[3*0+0]<<"\t"<<strided_vel[3*0+1]<<"\t"<<strided_vel[3*0+2]<<endl;
 
-	// leapfrog_init_step(pos, vel, force, dt, n, totalE) ;
+	leapfrog_init_step(pos, vel, force, dt, n, totalE) ;
 	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
 	
 	
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	int xx = 12;
 	double perc = 0;
-	// write_state(pos, to_string(file_n)+"_pos");
 	write_state(strided_pos, to_string(file_n)+"_pos");
 	double wt = get_wall_time();
 	while(t<tmax){
-		
-		// cout<<pos[xx][0]<<"\t"<<pos[xx][1]<<"\t"<<pos[xx][2]<<endl;
-		// cout<<strided_pos[3*xx+0]<<"\t"<<strided_pos[3*xx+1]<<"\t"<<strided_pos[3*xx+2]<<endl;
-		// cout<<endl;
-		// cout<<vel[xx][0]<<"\t"<<vel[xx][1]<<"\t"<<vel[xx][2]<<endl;
-		// cout<<strided_vel[3*xx+0]<<"\t"<<strided_vel[3*xx+1]<<"\t"<<strided_vel[3*xx+2]<<endl;
-		// cout<<endl;
-		// cout<<force[xx][0]<<"\t"<<force[xx][1]<<"\t"<<force[xx][2]<<endl;
-		// cout<<strided_force[3*xx+0]<<"\t"<<strided_force[3*xx+1]<<"\t"<<strided_force[3*xx+2]<<endl;
-		
-		// calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
-		// calc_force(pos, vel, force, n, totalE);
-		// cout<<"====="<<endl;
-		// leapfrog_step(pos, vel, force, dt, n, totalE);
+	
 		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
-
-		// cout<<pos[xx][0]<<"\t"<<pos[xx][1]<<"\t"<<pos[xx][2]<<endl;
-		// cout<<strided_pos[3*xx+0]<<"\t"<<strided_pos[3*xx+1]<<"\t"<<strided_pos[3*xx+2]<<endl;
-		// cout<<endl;
-		// cout<<vel[xx][0]<<"\t"<<vel[xx][1]<<"\t"<<vel[xx][2]<<endl;
-		// cout<<strided_vel[3*xx+0]<<"\t"<<strided_vel[3*xx+1]<<"\t"<<strided_vel[3*xx+2]<<endl;
-		// cout<<endl;
-		// cout<<force[xx][0]<<"\t"<<force[xx][1]<<"\t"<<force[xx][2]<<endl;
-		// cout<<strided_force[3*xx+0]<<"\t"<<strided_force[3*xx+1]<<"\t"<<strided_force[3*xx+2]<<endl;
-
-		// exit(0);
+		leapfrog_step(pos, vel, force, dt, n, totalE);
 		if(step%10==0){
-			// write_state(pos, to_string(file_n)+"_pos");
-			write_state(strided_pos, to_string(file_n)+"_pos");
-
+			// write_state(strided_pos, to_string(file_n)+"_pos");
+			// write_state(pos, to_string(file_n) + "_pos");
 			file_n++;
 		}
 		t += dt;
@@ -171,10 +146,7 @@ int main ( int argc, char *argv[] ){
 
 	cout<<"\n"<<endl;
 	cout<< "Total time: " <<setprecision(3) <<( get_wall_time() - wt )<<"s"<<endl;
-	cout<<pos[xx][0]<<"\t"<<pos[xx][1]<<"\t"<<pos[xx][2]<<endl;
-	cout<<strided_pos[3*xx+0]<<"\t"<<strided_pos[3*xx+1]<<"\t"<<strided_pos[3*xx+2]<<endl;
-
-	cout<<vel[xx][0]<<"\t"<<vel[xx][1]<<"\t"<<vel[xx][2]<<endl;
-	cout<<strided_vel[3*xx+0]<<"\t"<<strided_vel[3*xx+1]<<"\t"<<strided_vel[3*xx+2]<<endl;
+	cout<<force[100][0]<<"\t"<<force[100][1]<<"\t"<<force[100][2]<<endl;
+	cout<<strided_force[3*100+0]<<"\t"<<strided_force[3*100+1]<<"\t"<<strided_force[3*100+2]<<endl;
 	return 0;
 }
