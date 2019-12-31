@@ -18,59 +18,59 @@ int n;
 
 po::variables_map process_pars(int argc, char *argv[]){
 	po::options_description desc("Options"); 
-    desc.add_options() 
-      ("help", "Print help messages") 
-      ("npar", po::value<int>(), "number of particles") 
-      ("nproc", po::value<int>(),"number of processes")
-      ("tmax", po::value<int>(), "max time") ; 
+	desc.add_options() 
+	  ("help", "Print help messages") 
+	  ("npar", po::value<int>(), "number of particles") 
+	  ("nproc", po::value<int>(),"number of processes")
+	  ("tmax", po::value<int>(), "max time") ; 
 
    
 	vector<string> req_pars = {"nproc", "npar" , "tmax"};
 
-    po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-    if (vm.count("help")) {
-        cout << desc << "\n";
-        exit(0);
-    }
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::notify(vm);
+	if (vm.count("help")) {
+		cout << desc << "\n";
+		exit(0);
+	}
 
-    vector<string> missing_pars = {};
-    for(auto p : req_pars){
-    	if(vm.count(p) == 0){
-    		missing_pars.push_back(p);
-    	}
-    }
+	vector<string> missing_pars = {};
+	for(auto p : req_pars){
+		if(vm.count(p) == 0){
+			missing_pars.push_back(p);
+		}
+	}
 
-    if(missing_pars.size()!=0){
-    	string failed = "";
-	   	for(int i = 0; i<missing_pars.size();i++){
-	   		if(i==0){
-	   			failed += missing_pars[i];
-	   		} else {
-	   			failed += ", " + missing_pars[i];
-	   		}
-    	}
+	if(missing_pars.size()!=0){
+		string failed = "";
+		for(int i = 0; i<missing_pars.size();i++){
+			if(i==0){
+				failed += missing_pars[i];
+			} else {
+				failed += ", " + missing_pars[i];
+			}
+		}
 
-    	cout<<"Was not given following required pars: " + failed<<endl;
-    	exit(0);
-    }
+		cout<<"Was not given following required pars: " + failed<<endl;
+		exit(0);
+	}
 
-    return vm;
+	return vm;
 }
 
 // Main simulation
 int main ( int argc, char *argv[] ){
 	
-   	po::variables_map vm = process_pars(argc, argv);
-   	empty_folder("output/data/",".dat");
-    empty_folder("output/plots/",".png");
+	po::variables_map vm = process_pars(argc, argv);
+	empty_folder("output/data/",".dat");
+	empty_folder("output/plots/",".png");
 	
 	n_threads = vm["nproc"].as<int>();
 	omp_set_num_threads( n_threads );
 	#pragma omp parallel
 	{
-	    thread_id = omp_get_thread_num();
+		thread_id = omp_get_thread_num();
 	}
 
 	srand(1);
@@ -82,7 +82,11 @@ int main ( int argc, char *argv[] ){
 
 	vector<double> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<double> > strided_force_threadcpy(n_threads, vector<double>(3*n,0));
-	
+	double xmin(-15), xmax(15), ymin(-15), ymax(15), zmin(-15), zmax(15);
+
+	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
+	root_node->calcOctants();
+	exit(0);
 	// Lazy setup of cluster 1
 	for(int i = 0; i<n/2; i++){	
 		vector<vector<double> > temp = init( rands,{-10.,-10.,-10.},{0.06,0.02,0.02});

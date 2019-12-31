@@ -24,7 +24,7 @@ def empty_folder(folder):
 # empty_folder("../../output/plots/")
 def do_plot(i):
 	print(i)
-	fig = pyplot.figure(figsize=(6,6))
+	fig = pyplot.figure(figsize=(12,12))
 	ax = Axes3D(fig)
 	ax.set_xlim3d(-20,20)
 	ax.set_ylim3d(-20,20)

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_COMPILER /usr/bin/g++-9)
 project(particle_sim C CXX)
 include_directories(src)
 file(MAKE_DIRECTORY output output/data)

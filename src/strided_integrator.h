@@ -26,7 +26,6 @@ void calc_force_strided( const vector<double> &strided_pos_vec, const vector<dou
 					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
 					strided_force_threadcpy[thread_id][3*i+k] += val;
 					strided_force_threadcpy[thread_id][3*j+k] -= val;
-
 				}
 			}
 		}
