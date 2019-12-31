@@ -67,7 +67,9 @@ void progress(double perc, double totalE){
         else
             cout << " ";
     }
-    cout << "] " + to_string((int) round(100*perc)) + "%, totalE:" + to_string(totalE) +"\r";
+
+    cout << "] " + to_string((int) round(100*perc)) + "\r";
+    // cout << "] " + to_string((int) round(100*perc)) + "%, totalE:" + to_string(totalE) +"\r";
 }
 
 

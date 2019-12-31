@@ -82,8 +82,8 @@ int main ( int argc, char *argv[] ){
 
 	vector<double> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<double> > strided_force_threadcpy(n_threads, vector<double>(3*n,0));
-	vector<OctreeNode*> node_map(n);
-	double xmin(-16), xmax(16), ymin(-16), ymax(16), zmin(-16), zmax(16);
+	// vector<OctreeNode*> node_map(n);
+	// double xmin(-16), xmax(16), ymin(-16), ymax(16), zmin(-16), zmax(16);
 
 	// Lazy setup of cluster 1
 	for(int i = 0; i<n/2; i++){	
@@ -102,24 +102,6 @@ int main ( int argc, char *argv[] ){
 			strided_vel[3*i+k] = temp[1][k];
 		}
 	}
-	strided_pos[0] = -15;
-	strided_pos[1] = -15;
-	strided_pos[2] = -15;
-
-	strided_pos[3] = 0.1;
-	strided_pos[4] = 0.1;
-	strided_pos[5] = 0.1;
-
-	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
-	root_node->add_particle(0, strided_pos, node_map);
-	root_node->add_particle(1, strided_pos, node_map);
-
-	for(auto node: root_node->children){
-		cout<<node->particle_ids.size()<<endl;
-		cout<<node->children.size()<<endl;
-	}
-	// cout<<node_map[0]<<endl;
-	exit(0);
 
 	// Init leapfrom half step
 	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
