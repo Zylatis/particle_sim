@@ -1,5 +1,4 @@
 #include <unordered_set>
-
 // class Octree {
 // 	private:
 
@@ -45,7 +44,7 @@ class OctreeNode {
 	private:
 		// Boundary of octant
 		double xmin, xmax, ymin, ymax, zmin, zmax, s;
-
+		double theta = 0.5;
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
@@ -110,11 +109,52 @@ class OctreeNode {
 			return (x<= xmax && x> xmin && y <= ymax && y > ymin && z <= zmax && z> zmin);
 		}
 
-		array<double,3> calcForce(int particle, const vector<double> &strided_pos){
-			array<double,3> F = {0.,0.,0.};
+		void calcForce(int particle, const vector<double> &strided_pos, vector<double> &strided_force){
+			array<double,3> drvec ={0.,0.,0.};
+			double rmag(-1);
+			double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
+			
+			// If current node is leaf node, and particle in node is not the target particle, calculate two body force and add
+			if(particle_ids.size() == 1 && particle_ids.find(particle) == particle_ids.end()){
+				// Get the particle ID of particle in this leaf node
+				int p2 = *particle_ids.begin();
+				// Calc dr
+				for(int k = 0; k<3;k++){
+					drvec[k] = strided_pos[3*p2+k] - strided_pos[3*particle+k];				
+				}
 
+				// Calc |dr|
+				rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
 
-			return F;
+				// Add force components
+				for(int k = 0; k<3;k++){
+					strided_force[3*particle+k] += G*mass*drvec[k]/(eps+rmag*rmag*rmag);
+				}
+				
+			} else if(particle_ids.size()>1){
+				// else, calc s/d
+				for(int k = 0; k<3;k++){
+					drvec[k] = centre_of_mass[k] - strided_pos[3*particle+k];
+					
+				}
+				rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
+
+				double sd_frac = s/rmag;
+
+				// if octant width/dist between target particle and node CoM < threshold 
+				if(sd_frac < theta){
+					// Consider this node as a single body, compute force as force from particle of mass total mass at CoM
+					for(int k = 0; k<3;k++){
+						strided_force[3*particle+k] += G*mass*particle_ids.size()*drvec[k]/(eps+rmag*rmag*rmag);
+					}
+				} else {
+					// call this procedure on each of this nodes children
+					for(auto node : children){
+						node->calcForce(particle, strided_pos, strided_force);
+					}
+				}
+			}
+
 		}
 
 		// Function to be called recursively to add a particle to the tree (called on root node externally)
@@ -159,23 +199,15 @@ class OctreeNode {
 
 					// Add new nodes to children list
 					children.push_back(temp);
-					// As we go along making the quadrants, check which one it should be put into, and recursively add it to that quadrant
-					// auto prev_particle = particle_ids[0];
 
+					// As we go along making the quadrants, check which one it should be put into, and recursively add it to that quadrant
 					for(auto p_id : particle_ids){
+						// This was done this way because we moved to hash set to store particles so no notion of getting the 'first' particle
+						// However, there is a perf hit here because we are accessing strided_pos when already have x,y,z for that particle
 						if(children[i]->particleInNode(strided_pos[3*p_id],strided_pos[3*p_id+1],strided_pos[3*p_id+2])){
 							children[i]->addParticle(p_id, strided_pos, node_map, node_list);
 						}
 					}
-					// // Add the particle that was originally in the parent octant (before adding the new particle) to correct octant
-					// if(children[i]->particleInNode(strided_pos[3*prev_particle],strided_pos[3*prev_particle+1],strided_pos[3*prev_particle+2])){
-					// 	children[i]->addParticle(prev_particle, strided_pos, node_map, node_list);
-					// }
-					// // Now add new particle to relevant octant
-					// if(children[i]->particleInNode(x,y,z)){
-					// 	children[i]->addParticle(particle, strided_pos, node_map, node_list);
-					// }
-
 				}
 
 				// assuming mass = 1 for now, update COM with new particle

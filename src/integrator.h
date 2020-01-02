@@ -1,3 +1,4 @@
+#pragma once
 #include <assert.h> 
 #define likely(x)       __builtin_expect(!!(x), 1)
 
@@ -13,7 +14,8 @@ vector<double> diff_vec(  const vector<vector< double > >&pos_vec , const int &i
 }
 
 // Get magnitude
-double get_mag( const vector<double> &pos_vec ){
+template <typename T> 
+double get_mag( const T &pos_vec ){
 	return sqrt(pow(pos_vec[0],2.) + pow(pos_vec[1],2.) + pow(pos_vec[2],2.));
 }
 

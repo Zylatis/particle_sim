@@ -61,7 +61,7 @@ po::variables_map process_pars(int argc, char *argv[]){
 
 // Main simulation
 int main ( int argc, char *argv[] ){
-	
+	double wt(0);
 	po::variables_map vm = process_pars(argc, argv);
 	empty_folder("output/data/",".dat");
 	empty_folder("output/plots/",".png");
@@ -104,28 +104,51 @@ int main ( int argc, char *argv[] ){
 		}
 	}
 
-	// strided_pos[0] = -15;
-	// strided_pos[1] = -15;
-	// strided_pos[2] = -15;
+	strided_pos[0] = -15;
+	strided_pos[1] = -15;
+	strided_pos[2] = -15;
 
-	// strided_pos[3] = -1;
-	// strided_pos[4] = -1;
-	// strided_pos[5] = -1;
+	strided_pos[3] = -1;
+	strided_pos[4] = -1;
+	strided_pos[5] = -1;
 
 	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
 	node_list.push_back(root_node);
 	for(int i = 0;i<n;i++){
-		cout<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
+		// cout<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
 		root_node->addParticle(i, strided_pos, node_map, node_list);		
 	}
 	// cout<<root_node<<endl;
-	for(auto node: root_node->children){
-		node->printBoundaries();
+	// for(auto node: root_node->children){
+	// 	node->printBoundaries();
 
-	}
+	// }
 	// for(int i=0; i<n; i++){
 	// 	cout<<i<<"\t"<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<"\t"<<node_map[i]<<endl;
 	// }
+	wt = get_wall_time();
+	#pragma omp parallel for 
+	for(int i = 0; i<n;i++){
+		root_node->calcForce(i, strided_pos, strided_force);	
+	}
+	cout<<get_wall_time()-wt<<endl;
+	cout<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	cout<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+
+	strided_force[0] = 0.;
+	strided_force[1] = 0.;
+	strided_force[2] = 0.;
+
+	strided_force[3] = 0.;
+	strided_force[4] = 0.;
+	strided_force[5] = 0.;
+
+	wt = get_wall_time();
+	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
+	cout<<get_wall_time()-wt<<endl;
+	cout<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	cout<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+
 	exit(0);
 
 	// Init leapfrom half step
@@ -134,7 +157,7 @@ int main ( int argc, char *argv[] ){
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	double perc = 0;
 	write_state(strided_pos, to_string(file_n)+"_pos");
-	double wt = get_wall_time();
+	wt = get_wall_time();
 	while(t<tmax){
 	
 		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
