@@ -83,7 +83,8 @@ int main ( int argc, char *argv[] ){
 	vector<double> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<double> > strided_force_threadcpy(n_threads, vector<double>(3*n,0));
 	vector<OctreeNode*> node_map(n);
-	double xmin(-16), xmax(16), ymin(-16), ymax(16), zmin(-16), zmax(16);
+	vector<OctreeNode*> node_list;
+	double xmin(-20), xmax(20), ymin(-20), ymax(20), zmin(-20), zmax(20); // TODO add assert that all particles produced inside box
 
 	// Lazy setup of cluster 1
 	for(int i = 0; i<n/2; i++){	
@@ -102,23 +103,29 @@ int main ( int argc, char *argv[] ){
 			strided_vel[3*i+k] = temp[1][k];
 		}
 	}
-	strided_pos[0] = -15;
-	strided_pos[1] = -15;
-	strided_pos[2] = -15;
 
-	strided_pos[3] = 0.1;
-	strided_pos[4] = 0.1;
-	strided_pos[5] = 0.1;
+	// strided_pos[0] = -15;
+	// strided_pos[1] = -15;
+	// strided_pos[2] = -15;
+
+	// strided_pos[3] = -1;
+	// strided_pos[4] = -1;
+	// strided_pos[5] = -1;
 
 	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
-	root_node->add_particle(0, strided_pos, node_map);
-	root_node->add_particle(1, strided_pos, node_map);
-
-	for(auto node: root_node->children){
-		cout<<node->particle_ids.size()<<endl;
-		cout<<node->children.size()<<endl;
+	node_list.push_back(root_node);
+	for(int i = 0;i<n;i++){
+		cout<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
+		root_node->addParticle(i, strided_pos, node_map, node_list);		
 	}
-	// cout<<node_map[0]<<endl;
+	// cout<<root_node<<endl;
+	for(auto node: root_node->children){
+		node->printBoundaries();
+
+	}
+	// for(int i=0; i<n; i++){
+	// 	cout<<i<<"\t"<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<"\t"<<node_map[i]<<endl;
+	// }
 	exit(0);
 
 	// Init leapfrom half step
