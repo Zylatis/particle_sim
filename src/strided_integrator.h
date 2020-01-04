@@ -5,7 +5,7 @@
 void calc_force_strided( const vector<double> &strided_pos_vec, const vector<double > &strided_vel_vec, vector<double > &strided_force, int n, double &totalE, vector<vector<double > > &strided_force_threadcpy ){
 	totalE = 0.;	
 	
-	#pragma omp parallel
+	#pragma omp parallel for
 	for(int i = 0; i<n;i++){
 		for(int k = 0; k<3;k++){
 			strided_force_threadcpy[thread_id][3*i+k] = 0.;

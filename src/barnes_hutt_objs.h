@@ -1,35 +1,4 @@
 #include <unordered_set>
-// class Octree {
-// 	private:
-
-// 		vector<vector<double> > particles;
-// 		class OctreeNode {
-// 			private:
-// 				double xmin, xmax, ymin, ymax, zmin, zmax;
-// 				vector<vector<double> > particles;
-// 				double total_mass;
-// 				vector<double> com;
-
-// 			public:	
-// 				vector<OctreeNode*> children;
-// 				OctreeNode(vector<vector<double> > inp_particles){
-// 					children.resize(8);
-// 					particles = inp_particles;
-// 				};
-				
-// 		};
-// 	protected:
-// 	public:	
-// 		Octree(){};
-// 		Octree(vector<vector<double> > &pos){
-// 			particles = pos;
-// 		}
-
-// 	void build(){
-// 		OctreeNode* root = new OctreeNode(particles);
-// 	}
-// };
-
 
 template <typename T> 
 void print_container(T &v){
@@ -44,7 +13,7 @@ class OctreeNode {
 	private:
 		// Boundary of octant
 		double xmin, xmax, ymin, ymax, zmin, zmax, s;
-		double theta = 0.5;
+		double theta = 0.;
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
@@ -125,10 +94,19 @@ class OctreeNode {
 
 				// Calc |dr|
 				rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
-
+				if(particle==0){
+					cout<<p2<<"\t";
+				}
 				// Add force components
 				for(int k = 0; k<3;k++){
-					strided_force[3*particle+k] += G*mass*drvec[k]/(eps+rmag*rmag*rmag);
+					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
+					strided_force[3*particle+k] += val;
+					if(particle == 0){
+						cout<<val<<"\t";
+					}
+				}
+				if(particle==0){
+					cout<<endl;					
 				}
 				
 			} else if(particle_ids.size()>1){
