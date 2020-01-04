@@ -5,7 +5,7 @@ This code is an experiment in C++ using an astrophysical N-body sim as a model p
 <!-- ![Example](example.gif) -->
 
 ## Algorithm
-Currently the code only uses a basic O(N^2) (without symmetry) algorithm to compute the forces and then the leapfrog algorithm to do time propagation.
+Currently the code only uses a basic O(N^2) algorithm to compute the forces and then the leapfrog algorithm to do time propagation. 
 
 There is one branch playing with encapsulating the particle data in a Particle class, the idea being that down the line we could play with different particle types and properties, but the breaking of cache locality in this situation seemed to have a big performance hit, so the master branch now just works on sets of vectors.
 
@@ -31,9 +31,9 @@ where the cmd line args are number of OpenMP threads, number of particles (split
 
 
 ## Todo
-* Config file
-* Re-write force-calc loop to make use of symmetry of forces without breaking parallelism/imposing race conditions
-* Barnes-Hutt alg
-* Choice of interesting initial conditions (disc collisions and so on)
-* Better plotting/viz
-* Hybrid MPI + OpenMP approach
+- [ ] Config file
+- [x] Re-write force-calc loop to make use of symmetry of forces without breaking parallelism/imposing race conditions
+- [x] Barnes-Hutt alg (almost finished, in other branch, some small niggles about reduction to direct sum problem as theta ->0)
+- [ ] Choice of interesting initial conditions (disc collisions and so on)
+- [ ] Better plotting/viz
+- [ ] Hybrid MPI + OpenMP approach
