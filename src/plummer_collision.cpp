@@ -7,10 +7,9 @@ int thread_id, n_threads;
 #include "math_objs.h"
 #include "init_conditions.h"
 #include "integrator.h"
-#include "strided_integrator.h"
 
 #include "boost/program_options.hpp" 
-#include "barnes_hutt_objs.h"
+// #include "barnes_hutt_objs.h"
 namespace po = boost::program_options;
 
 int FILE_P = 15; // precision of outputs

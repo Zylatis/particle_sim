@@ -1,85 +1,70 @@
 #include <assert.h> 
 #define likely(x)       __builtin_expect(!!(x), 1)
 
-// Get delta - r
-vector<double> diff_vec(  const vector<vector< double > >&pos_vec , const int &i, const int &j){
-	// Note that currently this is called inside a pragma parallel loop so no point parallelising here
-	vector<double> out(3);
-	for(int k = 0; k<3;k++){
-		out[k] = pos_vec[i][k] - pos_vec[j][k];
-	}
-
-	return out;
-}
-
-// Get magnitude
-double get_mag( const vector<double> &pos_vec ){
-	return sqrt(pow(pos_vec[0],2.) + pow(pos_vec[1],2.) + pow(pos_vec[2],2.));
-}
-
 // Calc force
-void calc_force( const vector<vector< double > > &pos_vec, const vector<vector< double > > &vel_vec, vector<vector< double > > &force, int n, double &totalE ){
+void calc_force_strided( const vector<double> &strided_pos_vec, const vector<double > &strided_vel_vec, vector<double > &strided_force, int n, double &totalE, vector<vector<double > > &strided_force_threadcpy ){
 	totalE = 0.;	
 	
-	#pragma omp parallel for
-	for(int i = 0; i< n; i++){
-
-		// Lazy zeroing 
+	#pragma omp parallel
+	for(int i = 0; i<n;i++){
 		for(int k = 0; k<3;k++){
-			fill(force[i].begin(), force[i].end(), 0.);
+			strided_force_threadcpy[thread_id][3*i+k] = 0.;
 		}
-		double vmag = get_mag(vel_vec[i]);
-
-		#pragma omp atomic
-		totalE += mass*vmag*vmag*0.5;
-
-		for(int j = 0; j<n; j++){
-			if(likely(i!=j)){
-			// if(i!=j){
-				vector<double> drvec = diff_vec(pos_vec, j, i);				
-				double rmag = get_mag(drvec);
-				
+	}
+	
+	#pragma omp parallel for schedule(static)
+	for(int i = 0; i<n;i++){
+		for(int j = i+1; j<n; j++){
+			if(i!=j){
+				array<double,3> drvec;
 				for(int k = 0; k<3;k++){
-					force[i][k] += G*mass*drvec[k]/(eps+rmag*rmag*rmag);
-					// #pragma omp atomic 
-					// out[j][k] += -G*mass*drvec[k]/(eps+pow(rmag,3));
+					drvec[k] = strided_pos_vec[3*j+k] - strided_pos_vec[3*i+k];
 				}
+				double rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
 
-				#pragma omp atomic
-				totalE += -G*mass*mass/rmag;
+				for(int k = 0; k<3;k++){
+					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
+					strided_force_threadcpy[thread_id][3*i+k] += val;
+					strided_force_threadcpy[thread_id][3*j+k] -= val;
+				}
 			}
 		}
-	}
-	// return out;	
+	}	
+
+	#pragma omp parallel for
+	for ( int i = 0; i < 3*n; i++ ) {
+		strided_force[i] = 0.;
+		for(int tid = 0; tid<n_threads;tid++){
+        	strided_force[i] += strided_force_threadcpy[tid][i];
+   	 	}
+	}		
 }
 
-void leapfrog_step( vector<vector< double > > &pos, vector<vector< double > > &vel, vector< vector<double> > &force, double dt, int n, double &totalE){
+void leapfrog_step_strided( vector< double > &strided_pos, vector< double > &strided_vel, vector< double > &strided_force, double dt, int n, double &totalE,  vector<vector<double > > &strided_force_threadcpy){
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
-			pos[i][k] += vel[i][k]*dt;
+			strided_pos[3*i+k] += strided_vel[3*i+k]*dt;
 		}
 	}
-	// vector<vector< double> > accel = force(pos, vel, n, totalE);
-	calc_force(pos, vel, force, n, totalE);
+	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
 
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
-			vel[i][k] += force[i][k]*dt;
+			strided_vel[3*i+k] += strided_force[3*i+k]*dt;
 		}
 	}
 }
 
 // Initial t0 leapfrog step
-void leapfrog_init_step( const vector<vector<double> > &pos, vector< vector<double> > &vel, vector< vector<double> > &force, double dt, int n, double &totalE){
-	// vector<vector<double> > accel = force(pos, vel, n, totalE);
-	calc_force(pos, vel, force, n, totalE);
+void leapfrog_init_step_strided( const vector< double > &strided_pos, vector< double > &strided_vel, vector< double > &strided_force, double dt, int n, double &totalE,  vector<vector<double > > &strided_force_threadcpy){
+	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
 
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
-			vel[i][k] += force[i][k]*dt/2.;
+			strided_vel[3*i+k] += strided_force[3*i+k]*dt*0.5;
 		}
 	}
 }
