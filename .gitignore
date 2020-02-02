@@ -4,3 +4,4 @@ output/plots/*
 !output/data/.gitkeep
 !output/movies/.gitkeep
 !output/plots/.gitkeep
+build/
