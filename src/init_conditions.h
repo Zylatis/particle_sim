@@ -1,5 +1,5 @@
 
-vector<vector<double> > init(  default_random_engine &rands, const vector<double> &centre, const vector<double> &centre_V ){
+vector<vector<double> > plummer_init(  default_random_engine &rands, const vector<double> &centre, const vector<double> &centre_V ){
 	
 	vector<vector< double> > data = {vector<double>(3,0), vector<double>(3,0)};
 

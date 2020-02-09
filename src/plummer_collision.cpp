@@ -81,12 +81,10 @@ int main ( int argc, char *argv[] ){
 
 	vector<double> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<double> > strided_force_threadcpy(n_threads, vector<double>(3*n,0));
-	// vector<OctreeNode*> node_map(n);
-	// double xmin(-16), xmax(16), ymin(-16), ymax(16), zmin(-16), zmax(16);
-
+	
 	// Lazy setup of cluster 1
 	for(int i = 0; i<n/2; i++){	
-		vector<vector<double> > temp = init( rands,{-10.,-10.,-10.},{0.06,0.02,0.02});
+		vector<vector<double> > temp = plummer_init( rands,{-10.,-10.,-10.},{0.06,0.02,0.02});
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] = temp[0][k];
 			strided_vel[3*i+k] = temp[1][k];
@@ -95,7 +93,7 @@ int main ( int argc, char *argv[] ){
 
 	// Lazy setup of cluster 2
 	for(int i = n/2; i<n; i++){	
-		vector<vector<double> > temp = init( rands,{10.,10.,10.},{-.07,-0.01,-0.02});
+		vector<vector<double> > temp = plummer_init( rands,{10.,10.,10.},{-.07,-0.01,-0.02});
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] = temp[0][k];
 			strided_vel[3*i+k] = temp[1][k];

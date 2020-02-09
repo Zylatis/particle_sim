@@ -27,5 +27,3 @@ double get_wall_time(){
     }
     return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
-double mass, G(1.);
-double eps = 0.01;
