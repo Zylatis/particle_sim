@@ -1,7 +1,7 @@
 #include "boost/filesystem.hpp" 
 namespace fs = boost::filesystem;
 
-void write_state( vector< vector< double>  >  &array, string file_name){
+void write_state( vector< vector< current_dtype>  >  &array, string file_name){
 
 	ofstream o;
 	string outputFolder = "output/data/";
@@ -14,7 +14,7 @@ void write_state( vector< vector< double>  >  &array, string file_name){
 	o.close();
 }
 
-void write_state( vector< double >  &array, string file_name){
+void write_state( vector< current_dtype >  &array, string file_name){
 
     ofstream o;
     string outputFolder = "output/data/";
@@ -54,7 +54,7 @@ void empty_folder( string folder_path, string extension){
 }
 
 
-void progress(double perc, double totalE){
+void progress(current_dtype perc, current_dtype totalE){
     //https://stackoverflow.com/questions/44987147/progress-bar-c
     int bar_l = 30;
     int pos = perc * bar_l;

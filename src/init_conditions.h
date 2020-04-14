@@ -1,10 +1,10 @@
 
-vector<vector<double> > init(  default_random_engine &rands, const vector<double> &centre, const vector<double> &centre_V ){
+vector<vector<current_dtype> > init(  default_random_engine &rands, const vector<current_dtype> &centre, const vector<current_dtype> &centre_V ){
 	
-	vector<vector< double> > data = {vector<double>(3,0), vector<double>(3,0)};
+	vector<vector< current_dtype> > data = {vector<current_dtype>(3,0), vector<current_dtype>(3,0)};
 
-	uniform_real_distribution<double> r_dist(0.,1.), unit_circle(-1,1), phi_dist(0,2.*3.14159), x_dist(0.,1.), y_dist(0.,0.1);
-	double theta, r, phi, V;
+	uniform_real_distribution<current_dtype> r_dist(0.,1.), unit_circle(-1,1), phi_dist(0,2.*3.14159), x_dist(0.,1.), y_dist(0.,0.1);
+	current_dtype theta, r, phi, V;
 
 	theta = acos(unit_circle(rands));
 	phi = phi_dist(rands);
@@ -13,7 +13,7 @@ vector<vector<double> > init(  default_random_engine &rands, const vector<double
 		        r*sin(theta)*sin(phi)+centre[1],
 		        r*cos(theta) +centre[2]};
 	
-	double x(0.), y(0.1);
+	current_dtype x(0.), y(0.1);
 	while( y> x*x*pow((1.-pow(x,2.)),3.5)){
 		x = x_dist(rands);
 		y = y_dist(rands);
