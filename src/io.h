@@ -54,7 +54,7 @@ void empty_folder( string folder_path, string extension){
 }
 
 
-void progress(current_dtype perc, current_dtype totalE){
+void progress(double perc, current_dtype totalE){
     //https://stackoverflow.com/questions/44987147/progress-bar-c
     int bar_l = 30;
     int pos = perc * bar_l;
