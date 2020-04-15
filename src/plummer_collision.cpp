@@ -23,8 +23,8 @@ using namespace std; // heresy
 
 // Main simulation
 int main ( int argc, char *argv[] ){
-	
-	n_threads = 2;
+	auto config = read_config("test.config");
+	n_threads = config.n_threads;
 	omp_set_num_threads( n_threads );
 
 	// initialise threads with ids
@@ -35,10 +35,10 @@ int main ( int argc, char *argv[] ){
 
 	srand(1);
 	default_random_engine rands;
-	int n = 200; 
+	int n = config.n_particles; 
 	mass = 1./n;
 	int step(0), file_n(0);
-	current_dtype dt(0.1f), t(0.), totalE(0.), tmax(200.);//tmax( vm["tmax"].as<int>() );
+	current_dtype dt(0.1f), t(0.), totalE(0.), tmax(config.tmax);//tmax( vm["tmax"].as<int>() );
 
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
