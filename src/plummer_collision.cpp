@@ -1,8 +1,7 @@
-
-using namespace std;
 int thread_id, n_threads;
 typedef float current_dtype; 
 
+using namespace std;
 #pragma omp threadprivate( thread_id )
 
 #include "imports.h"
@@ -11,64 +10,14 @@ typedef float current_dtype;
 #include "init_conditions.h"
 #include "integrator.h"
 
-#include "boost/program_options.hpp" 
-// #include "barnes_hutt_objs.h"
-namespace po = boost::program_options;
-
 int FILE_P = 15; // precision of outputs
 int n;
-
-po::variables_map process_pars(int argc, char *argv[]){
-	po::options_description desc("Options"); 
-	desc.add_options() 
-	  ("help", "Print help messages") 
-	  ("npar", po::value<int>(), "number of particles") 
-	  ("nproc", po::value<int>(),"number of processes")
-	  ("tmax", po::value<int>(), "max time") ; 
-
-   
-	vector<string> req_pars = {"nproc", "npar" , "tmax"};
-
-	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
-	po::notify(vm);
-	if (vm.count("help")) {
-		cout << desc << "\n";
-		exit(0);
-	}
-
-	vector<string> missing_pars = {};
-	for(auto p : req_pars){
-		if(vm.count(p) == 0){
-			missing_pars.push_back(p);
-		}
-	}
-
-	if(missing_pars.size()!=0){
-		string failed = "";
-		for(int i = 0; i<missing_pars.size();i++){
-			if(i==0){
-				failed += missing_pars[i];
-			} else {
-				failed += ", " + missing_pars[i];
-			}
-		}
-
-		cout<<"Was not given following required pars: " + failed<<endl;
-		exit(0);
-	}
-
-	return vm;
-}
 
 // Main simulation
 int main ( int argc, char *argv[] ){
 	
-	po::variables_map vm = process_pars(argc, argv);
-	empty_folder("output/data/",".dat");
-	empty_folder("output/plots/",".png");
 	
-	n_threads = vm["nproc"].as<int>();
+	n_threads = 2;
 	omp_set_num_threads( n_threads );
 	#pragma omp parallel
 	{
@@ -77,10 +26,10 @@ int main ( int argc, char *argv[] ){
 
 	srand(1);
 	default_random_engine rands;
-	n = vm["npar"].as<int>();
+	n = 200; //vm["npar"].as<int>();
 	mass = 1./n;
 	int step(0), file_n(0);
-	current_dtype dt(0.1f), t(0.), totalE(0.), tmax( vm["tmax"].as<int>() );
+	current_dtype dt(0.1f), t(0.), totalE(0.), tmax(200.);//tmax( vm["tmax"].as<int>() );
 
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
@@ -109,7 +58,6 @@ int main ( int argc, char *argv[] ){
 	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
 	
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
-	current_dtype perc = 0;
 	write_state(strided_pos, to_string(file_n)+"_pos");
 	double wt = get_wall_time();
 	while(t<tmax){
@@ -125,6 +73,8 @@ int main ( int argc, char *argv[] ){
 	}
 
 	cout<<"\n"<<endl;
-	cout<< "Total time: " <<setprecision(3) <<( get_wall_time() - wt )<<"s"<<endl;
+	double t_total = ( get_wall_time() - wt );
+	cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
+	cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
 	return 0;
 }

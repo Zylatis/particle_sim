@@ -1,5 +1,5 @@
-#include "boost/filesystem.hpp" 
-namespace fs = boost::filesystem;
+// #include "boost/filesystem.hpp" 
+// namespace fs = boost::filesystem;
 
 void write_state( vector< vector< current_dtype>  >  &array, string file_name){
 
@@ -27,31 +27,31 @@ void write_state( vector< current_dtype >  &array, string file_name){
     o.close();
 }
 
-void empty_folder( string folder_path, string extension){
-    // https://stackoverflow.com/questions/6935279/delete-all-txt-in-a-directory-with-c
-    // This needs to be extension-aware so we don't bin our .gitignore files
-    fs::path p(folder_path);
-    if(fs::exists(p) && fs::is_directory(p))
-    {
-        fs::directory_iterator end;
-        for(fs::directory_iterator it(p); it != end; ++it)
-        {
-            try
-            {
-                if(fs::is_regular_file(it->status()) && (it->path().extension().compare(extension) == 0))
-                {
-                    fs::remove(it->path());
+// void empty_folder( string folder_path, string extension){
+//     // https://stackoverflow.com/questions/6935279/delete-all-txt-in-a-directory-with-c
+//     // This needs to be extension-aware so we don't bin our .gitignore files
+//     fs::path p(folder_path);
+//     if(fs::exists(p) && fs::is_directory(p))
+//     {
+//         fs::directory_iterator end;
+//         for(fs::directory_iterator it(p); it != end; ++it)
+//         {
+//             try
+//             {
+//                 if(fs::is_regular_file(it->status()) && (it->path().extension().compare(extension) == 0))
+//                 {
+//                     fs::remove(it->path());
 
-                }
-            }
-            catch(const std::exception &ex)
-            {
-                ex;
-            }
-        }
-    }
+//                 }
+//             }
+//             catch(const std::exception &ex)
+//             {
+//                 ex;
+//             }
+//         }
+//     }
 
-}
+// }
 
 
 void progress(double perc, current_dtype totalE){
