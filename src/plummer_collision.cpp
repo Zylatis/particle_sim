@@ -1,24 +1,33 @@
-int thread_id, n_threads;
-typedef float current_dtype; 
+#define current_dtype float // should really be defined in config but whatever 
+#define FILE_P 15; // precision of outputs
 
-using namespace std;
+int thread_id, n_threads; // ugly globals
+
+using namespace std; // heresy
 #pragma omp threadprivate( thread_id )
 
 #include "imports.h"
+#include <sstream>
+#include <unordered_map>
 #include "io.h"
 #include "math_objs.h"
 #include "init_conditions.h"
 #include "integrator.h"
 
-int FILE_P = 15; // precision of outputs
-int n;
+// #include "imgui.h"
+// #include "imgui_impl_glfw.h"
+// #include "imgui_impl_opengl3.h"
+// #include "include/glad.h"
+// #include <GLFW/glfw3.h>
+
 
 // Main simulation
 int main ( int argc, char *argv[] ){
 	
-	
 	n_threads = 2;
 	omp_set_num_threads( n_threads );
+
+	// initialise threads with ids
 	#pragma omp parallel
 	{
 		thread_id = omp_get_thread_num();
@@ -26,7 +35,7 @@ int main ( int argc, char *argv[] ){
 
 	srand(1);
 	default_random_engine rands;
-	n = 200; //vm["npar"].as<int>();
+	int n = 200; 
 	mass = 1./n;
 	int step(0), file_n(0);
 	current_dtype dt(0.1f), t(0.), totalE(0.), tmax(200.);//tmax( vm["tmax"].as<int>() );
@@ -76,5 +85,6 @@ int main ( int argc, char *argv[] ){
 	double t_total = ( get_wall_time() - wt );
 	cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
 	cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
+
 	return 0;
 }

@@ -1,16 +1,23 @@
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_COMPILER /usr/bin/g++-9)
+
 project(particle_sim C CXX)
-include_directories(src)
+
 file(MAKE_DIRECTORY output output/data)
+
+include_directories(src/include/)
+include_directories(src/include/imgui/)
+
+find_package(OpenGL REQUIRED)
 FIND_PACKAGE ( OpenMP  REQUIRED )
-#FIND_PACKAGE ( Boost  REQUIRED )
-#find_package(Boost REQUIRED COMPONENTS program_options filesystem)
-#set(LIBS ${LIBS} ${Boost_LIBRARIES})
-#include_directories(${Boost_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Ofast -std=c++11 -mtune=native -march=native -fopenmp")
-add_executable(plummer_collision src/plummer_collision.cpp)
-#add_executable(unit_tests src/tests/unit_tests.cpp)
-target_link_libraries(plummer_collision ${LIBS})
+
+add_executable(
+	plummer_collision src/plummer_collision.cpp 
+	src/include/glad.c 
+	
+)
+
+target_link_libraries(plummer_collision glfw)
