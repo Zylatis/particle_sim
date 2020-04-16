@@ -2,7 +2,7 @@
 #define likely(x)       __builtin_expect(!!(x), 1)
 
 // Calc force
-void calc_force_strided( const vector<current_dtype> &strided_pos_vec, const vector<current_dtype > &strided_vel_vec, vector<current_dtype > &strided_force, int n, current_dtype &totalE, vector<vector<current_dtype > > &strided_force_threadcpy ){
+void calc_force_strided( const vector<current_dtype> &strided_pos_vec, const vector<current_dtype > &strided_vel_vec, vector<current_dtype > &strided_force, int n, current_dtype &totalE, vector<vector<current_dtype > > &strided_force_threadcpy, vector<current_dtype  > & strided_dt_threadcpy ){
 	totalE = 0.;	
 	
 	#pragma omp parallel
@@ -19,11 +19,15 @@ void calc_force_strided( const vector<current_dtype> &strided_pos_vec, const vec
 				array<current_dtype,3> drvec;
 				for(int k = 0; k<3;k++){
 					drvec[k] = strided_pos_vec[3*j+k] - strided_pos_vec[3*i+k];
+					// strided_dt_threadcpy[3*thread_id+k] = strided_pos_vec[3*j+k] - strided_pos_vec[3*i+k];
 				}
 				current_dtype rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
+				// current_dtype rmag = sqrt(strided_dt_threadcpy[3*thread_id + 0]*strided_dt_threadcpy[3*thread_id + 0] + strided_dt_threadcpy[3*thread_id + 1]*strided_dt_threadcpy[3*thread_id + 1] + strided_dt_threadcpy[3*thread_id + 2]*strided_dt_threadcpy[3*thread_id + 2]);
 
 				for(int k = 0; k<3;k++){
+					// current_dtype val = G*mass*strided_dt_threadcpy[3*thread_id+k]/(eps+rmag*rmag*rmag);
 					current_dtype val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
+
 					strided_force_threadcpy[thread_id][3*i+k] += val;
 					strided_force_threadcpy[thread_id][3*j+k] -= val;
 				}
@@ -40,14 +44,14 @@ void calc_force_strided( const vector<current_dtype> &strided_pos_vec, const vec
 	}		
 }
 
-void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, current_dtype &totalE,  vector<vector<current_dtype > > &strided_force_threadcpy){
+void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, current_dtype &totalE,  vector<vector<current_dtype > > &strided_force_threadcpy, vector<current_dtype  > & strided_dt_threadcpy){
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] += strided_vel[3*i+k]*dt;
 		}
 	}
-	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
+	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy, strided_dt_threadcpy);
 
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
@@ -58,8 +62,8 @@ void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< curren
 }
 
 // Initial t0 leapfrog step
-void leapfrog_init_step_strided( const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, current_dtype &totalE,  vector<vector<current_dtype > > &strided_force_threadcpy){
-	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
+void leapfrog_init_step_strided( const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, current_dtype &totalE,  vector<vector<current_dtype > > &strided_force_threadcpy, vector<current_dtype > & strided_dt_threadcpy){
+	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy, strided_dt_threadcpy);
 
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){

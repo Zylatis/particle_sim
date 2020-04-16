@@ -42,10 +42,12 @@ int main ( int argc, char *argv[] ){
 
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
+	vector<current_dtype>  strided_dt_threadcpy(n_threads*3);
 	// vector<OctreeNode*> node_map(n);
 	// current_dtype xmin(-16), xmax(16), ymin(-16), ymax(16), zmin(-16), zmax(16);
 
 	// Lazy setup of cluster 1
+	cout<<"Initalise:"<<endl;
 	for(int i = 0; i<n/2; i++){	
 		vector<vector<current_dtype> > temp = init( rands,{-10.,-10.,-10.},{0.06,0.02,0.02});
 		for(int k = 0; k<3;k++){
@@ -64,14 +66,14 @@ int main ( int argc, char *argv[] ){
 	}
 
 	// Init leapfrom half step
-	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
+	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
 	
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	write_state(strided_pos, to_string(file_n)+"_pos");
 	double wt = get_wall_time();
 	while(t<tmax){
 	
-		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
+		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
 		// if(step%10==0){
 		// 	write_state(strided_pos, to_string(file_n)+"_pos");
 		// 	file_n++;
