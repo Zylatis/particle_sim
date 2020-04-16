@@ -87,6 +87,6 @@ int main ( int argc, char *argv[] ){
 	double t_total = ( get_wall_time() - wt );
 	cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
 	cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
-
+	cout<<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
 	return 0;
 }
