@@ -17,8 +17,8 @@ using namespace std; // heresy
 // #include "imgui.h"
 // #include "imgui_impl_glfw.h"
 // #include "imgui_impl_opengl3.h"
-// #include "include/glad.h"
-// #include <GLFW/glfw3.h>
+#include "include/glad.h"
+#include <GLFW/glfw3.h>
 
 
 // Main simulation
@@ -42,7 +42,7 @@ int main ( int argc, char *argv[] ){
 
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
-	vector<current_dtype>  strided_dt_threadcpy(n_threads*3);
+	vector<current_dtype>  strided_dt_threadcpy(n_threads*3, 0.);
 	// vector<OctreeNode*> node_map(n);
 	// current_dtype xmin(-16), xmax(16), ymin(-16), ymax(16), zmin(-16), zmax(16);
 
@@ -83,10 +83,19 @@ int main ( int argc, char *argv[] ){
 		progress( t/tmax, totalE );
 	}
 
+	GLFWwindow* window;
+  if (!glfwInit())
+    exit(EXIT_FAILURE);
+  
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
+
+  window = glfwCreateWindow(640, 480, "Look mah!", NULL, NULL);
 	cout<<"\n"<<endl;
 	double t_total = ( get_wall_time() - wt );
 	cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
 	cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
-	cout<<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
+	cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
 	return 0;
 }
