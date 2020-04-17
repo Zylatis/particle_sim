@@ -235,8 +235,15 @@ int main ( int argc, char *argv[] ){
 
   while(!glfwWindowShouldClose(window)){
 
-      // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
+
+
+  // while(t<tmax){
+  
+   leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
+   if(step%10==0){
+     // write_state(strided_pos, to_string(file_n)+"_pos");
+     // file_n++;
+    ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
@@ -249,8 +256,8 @@ int main ( int argc, char *argv[] ){
             static int counter = 0;
 
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            double x = (t/tmax);
+            ImGui::Text("Progress %.3f" , x );               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Another Window", &show_another_window);
 
@@ -275,13 +282,7 @@ int main ( int argc, char *argv[] ){
                 show_another_window = false;
             ImGui::End();
         }
-
-  	// glClear(GL_COLOR_BUFFER_BIT);
-    // glDrawArrays(GL_TRIANGLES, 0, 6); // already have buffer bound so this is the state machine aspect
-  	// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // number of indicies, nullptr because buffer already bound 
-
-      // Rendering
-        ImGui::Render();
+           ImGui::Render();
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
@@ -291,7 +292,21 @@ int main ( int argc, char *argv[] ){
 
     glfwSwapBuffers(window);
 
-  	glfwPollEvents();
+    glfwPollEvents();
+   }
+   t += dt;
+   step++;
+   progress( t/tmax, totalE );
+  // }
+      // Start the Dear ImGui frame
+        
+
+  	// glClear(GL_COLOR_BUFFER_BIT);
+    // glDrawArrays(GL_TRIANGLES, 0, 6); // already have buffer bound so this is the state machine aspect
+  	// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr); // number of indicies, nullptr because buffer already bound 
+
+      // Rendering
+     
   	// this_thread::sleep_for(chrono::milliseconds(50));
   }
 
@@ -310,18 +325,6 @@ int main ( int argc, char *argv[] ){
   //       ImGui::NewFrame();
 
 
-
-	// while(t<tmax){
-	
-	// 	leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;
-	// 	if(step%10==0){
-	// 		write_state(strided_pos, to_string(file_n)+"_pos");
-	// 		file_n++;
-	// 	}
-	// 	t += dt;
-	// 	step++;
-	// 	progress( t/tmax, totalE );
-	// }
 
 	// cout<<"\n"<<endl;
 	// double t_total = ( get_wall_time() - wt );
