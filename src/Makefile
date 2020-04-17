@@ -14,15 +14,15 @@
 #CXX = g++
 #CXX = clang++
 
-EXE = plummer_collision
-SOURCES = src/plummer_collision.cpp
-SOURCES += include/imgui/imgui_impl_glfw.cpp include/imguiimgui_impl_opengl3.cpp
-SOURCES += include/imgui/imgui.cpp include/imguiimgui_demo.cpp include/imguiimgui_draw.cpp include/imguiimgui_widgets.cpp
-OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
+EXE = plummer_colission
+SOURCES = plummer_colission.cpp
+#SOURCES += ../imgui_impl_glfw.cpp ../imgui_impl_opengl3.cpp
+#SOURCES += ../../imgui.cpp ../../imgui_demo.cpp ../../imgui_draw.cpp ../../imgui_widgets.cpp
+#OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
 
-CXXFLAGS = -I../ -I../../
-CXXFLAGS += -g -Wall -Wformat -Ofast -std=c++11 -mtune=native -march=native -fopenmp 
+#CXXFLAGS = -I../ -I../../
+CXXFLAGS += -g -Wall -Wformat
 LIBS =
 
 ##---------------------------------------------------------------------
@@ -82,27 +82,29 @@ endif
 ##---------------------------------------------------------------------
 ## BUILD RULES
 ##---------------------------------------------------------------------
+all:
+	g++ plummer_collision.cpp -o plummer_collision  -std=c++11 include/imgui/imgui_impl_glfw.cpp  include/imgui/imgui_impl_opengl3.cpp  include/imgui/imgui_demo.cpp include/imgui/imgui_draw.cpp include/imgui/imgui_widgets.cpp include/imgui/imgui.cpp include/glad.c  -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -lGL -lglfw -Ofast -std=c++11 -mtune=native -march=native -fopenmp -DIMGUI_IMPL_OPENGL_LOADER_GLAD
 
-%.o:%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+#%.o:%.cpp
+#	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:../%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+#%.o:../%.cpp
+#	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:../../%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+#%.o:../../%.cpp
+#	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:../libs/gl3w/GL/%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+#%.o:../libs/gl3w/GL/%.c
+#	$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o:../libs/glad/src/%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+#%.o:../libs/glad/src/%.c
+#	$(CC) $(CFLAGS) -c -o $@ $<
 
-all: $(EXE)
-	@echo Build complete for $(ECHO_MESSAGE)
+#all: $(EXE)
+#	@echo Build complete for $(ECHO_MESSAGE)
 
-$(EXE): $(OBJS)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
+#$(EXE): $(OBJS)
+#	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
-clean:
-	rm -f $(EXE) $(OBJS)
+#clean:
+#	rm -f $(EXE) $(OBJS)
