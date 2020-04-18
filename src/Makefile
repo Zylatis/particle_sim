@@ -1,3 +1,7 @@
+#all:
+#	g++ plummer_collision.cpp -o plummer_collision  -std=c++11 include/imgui/imgui_impl_glfw.cpp  include/imgui/imgui_impl_opengl3.cpp  include/imgui/imgui_demo.cpp include/imgui/imgui_draw.cpp include/imgui/imgui_widgets.cpp include/imgui/imgui.cpp include/glad.c  -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -lGL -lglfw -Ofast -std=c++11 -mtune=native -march=native -fopenmp -DIMGUI_IMPL_OPENGL_LOADER_GLAD
+
+
 #
 # Cross Platform Makefile
 # Compatible with MSYS2/MINGW, Ubuntu 14.04.1 and Mac OS X
@@ -11,18 +15,18 @@
 #   pacman -S --noconfirm --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-glfw
 #
 
-#CXX = g++
+CXX = g++
 #CXX = clang++
 
-EXE = plummer_colission
-SOURCES = plummer_colission.cpp
-#SOURCES += ../imgui_impl_glfw.cpp ../imgui_impl_opengl3.cpp
-#SOURCES += ../../imgui.cpp ../../imgui_demo.cpp ../../imgui_draw.cpp ../../imgui_widgets.cpp
-#OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
+EXE = plummer_collision
+SOURCES = plummer_collision.cpp
+SOURCES += include/imgui/imgui_impl_glfw.cpp include/imgui/imgui_impl_opengl3.cpp
+SOURCES += include/imgui/imgui.cpp include/imgui/imgui_demo.cpp include/imgui/imgui_draw.cpp include/imgui/imgui_widgets.cpp
+OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
 
-#CXXFLAGS = -I../ -I../../
-CXXFLAGS += -g -Wall -Wformat
+CXXFLAGS = -I../ -I../../
+CXXFLAGS += -g -Wall -Wformat -fopenmp -O3
 LIBS =
 
 ##---------------------------------------------------------------------
@@ -38,8 +42,8 @@ LIBS =
 # CXXFLAGS += -lGLEW -DIMGUI_IMPL_OPENGL_LOADER_GLEW
 
 ## Using OpenGL loader: glad
-# SOURCES += ../libs/glad/src/glad.c
-# CXXFLAGS += -I../libs/glad/include -DIMGUI_IMPL_OPENGL_LOADER_GLAD
+SOURCES += glad.c
+CXXFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
 
 ## Using OpenGL loader: glbinding
 ## This assumes a system-wide installation
@@ -82,29 +86,23 @@ endif
 ##---------------------------------------------------------------------
 ## BUILD RULES
 ##---------------------------------------------------------------------
-all:
-	g++ plummer_collision.cpp -o plummer_collision  -std=c++11 include/imgui/imgui_impl_glfw.cpp  include/imgui/imgui_impl_opengl3.cpp  include/imgui/imgui_demo.cpp include/imgui/imgui_draw.cpp include/imgui/imgui_widgets.cpp include/imgui/imgui.cpp include/glad.c  -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -lGL -lglfw -Ofast -std=c++11 -mtune=native -march=native -fopenmp -DIMGUI_IMPL_OPENGL_LOADER_GLAD
 
-#%.o:%.cpp
-#	$(CXX) $(CXXFLAGS) -c -o $@ $<
+%.o:%.cpp
+	$(CXX) $(CXXFLAGS) -std=c++11  -c -o $@ $< 
 
-#%.o:../%.cpp
-#	$(CXX) $(CXXFLAGS) -c -o $@ $<
+%.o: include/imgui/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-#%.o:../../%.cpp
-#	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-#%.o:../libs/gl3w/GL/%.c
-#	$(CC) $(CFLAGS) -c -o $@ $<
+%.o: include/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-#%.o:../libs/glad/src/%.c
-#	$(CC) $(CFLAGS) -c -o $@ $<
+all: $(EXE)
+	@echo Build complete for $(ECHO_MESSAGE)
 
-#all: $(EXE)
-#	@echo Build complete for $(ECHO_MESSAGE)
+$(EXE): $(OBJS)
+	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
-#$(EXE): $(OBJS)
-#	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
+clean:
+	rm -f $(EXE) $(OBJS)
 
-#clean:
-#	rm -f $(EXE) $(OBJS)
