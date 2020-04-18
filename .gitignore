@@ -5,3 +5,4 @@ output/plots/*
 !output/movies/.gitkeep
 !output/plots/.gitkeep
 build/
+src/*.o
