@@ -1,7 +1,3 @@
-#all:
-#	g++ plummer_collision.cpp -o plummer_collision  -std=c++11 include/imgui/imgui_impl_glfw.cpp  include/imgui/imgui_impl_opengl3.cpp  include/imgui/imgui_demo.cpp include/imgui/imgui_draw.cpp include/imgui/imgui_widgets.cpp include/imgui/imgui.cpp include/glad.c  -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -I/home/graeme/coding_local/particle_sim/cpp/src/include/ -lGL -lglfw -Ofast -std=c++11 -mtune=native -march=native -fopenmp -DIMGUI_IMPL_OPENGL_LOADER_GLAD
-
-
 #
 # Cross Platform Makefile
 # Compatible with MSYS2/MINGW, Ubuntu 14.04.1 and Mac OS X
@@ -15,7 +11,7 @@
 #   pacman -S --noconfirm --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-glfw
 #
 
-CXX = g++
+CXX = /usr/bin/g++-9
 #CXX = clang++
 
 EXE = plummer_collision
