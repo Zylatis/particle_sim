@@ -79,6 +79,7 @@ class OctreeNode {
 		}
 
 		void calcForce(int particle, const vector<double> &strided_pos, vector<double> &strided_force){
+
 			array<double,3> drvec ={0.,0.,0.};
 			double rmag(-1);
 			double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
@@ -94,21 +95,22 @@ class OctreeNode {
 
 				// Calc |dr|
 				rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
-				if(particle==0){
-					cout<<p2<<"\t";
-				}
+				// if(particle==0){
+					// cout<<p2<<"\t";
+				// }
 				// Add force components
 				for(int k = 0; k<3;k++){
 					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
 					strided_force[3*particle+k] += val;
-					if(particle == 0){
+					if(particle==0){
 						cout<<val<<"\t";
+						if(k==2){
+							cout<<"\t"<<strided_force[3*particle+k]<<"\t"<<strided_force[3*particle+k]<<"\t"<<p2<<endl;
+						}
 					}
+
 				}
-				if(particle==0){
-					cout<<endl;					
-				}
-				
+
 			} else if(particle_ids.size()>1){
 				// else, calc s/d
 				for(int k = 0; k<3;k++){
@@ -123,7 +125,9 @@ class OctreeNode {
 				if(sd_frac < theta){
 					// Consider this node as a single body, compute force as force from particle of mass total mass at CoM
 					for(int k = 0; k<3;k++){
-						strided_force[3*particle+k] += G*mass*particle_ids.size()*drvec[k]/(eps+rmag*rmag*rmag);
+						double val = G*mass*particle_ids.size()*drvec[k]/(eps+rmag*rmag*rmag);
+						strided_force[3*particle+k] += val;
+
 					}
 				} else {
 					// call this procedure on each of this nodes children

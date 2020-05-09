@@ -73,7 +73,7 @@ int main ( int argc, char *argv[] ){
 		thread_id = omp_get_thread_num();
 	}
 
-	srand(1);
+	srand(2);
 	default_random_engine rands;
 	n = vm["npar"].as<int>();
 	mass = 1./n;
@@ -103,6 +103,8 @@ int main ( int argc, char *argv[] ){
 			strided_vel[3*i+k] = temp[1][k];
 		}
 	}
+
+  cout<<setprecision(15)<<endl;
 
 	strided_pos[0] = -15;
 	strided_pos[1] = -15;
@@ -135,9 +137,11 @@ int main ( int argc, char *argv[] ){
 		root_node->calcForce(i, strided_pos, strided_force);	
 	}
 	// cout<<get_wall_time()-wt<<endl;
+  cout<<"-----------"<<endl;
 	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
 	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
 	cout<<endl;
+
 	strided_force[0] = 0.;
 	strided_force[1] = 0.;
 	strided_force[2] = 0.;
@@ -146,9 +150,10 @@ int main ( int argc, char *argv[] ){
 	strided_force[4] = 0.;
 	strided_force[5] = 0.;
 
-	wt = get_wall_time();
+	// wt = get_wall_time();
 	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
 	// cout<<get_wall_time()-wt<<endl;
+  cout<<"-----------"<<endl;
 	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
 	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
 
