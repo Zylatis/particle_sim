@@ -84,7 +84,7 @@ class OctreeNode {
 			double rmag(-1);
 			double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
 			
-			// If current node is leaf node, and particle in node is not the target particle, calculate two body force and add
+			// If current node is a leaf node, and particle in node is not the target particle, calculate two body force and add
 			if(particle_ids.size() == 1 && particle_ids.find(particle) == particle_ids.end()){
 				// Get the particle ID of particle in this leaf node
 				int p2 = *particle_ids.begin();
@@ -95,9 +95,7 @@ class OctreeNode {
 
 				// Calc |dr|
 				rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
-				// if(particle==0){
-					// cout<<p2<<"\t";
-				// }
+				
 				// Add force components
 				for(int k = 0; k<3;k++){
 					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
@@ -106,6 +104,9 @@ class OctreeNode {
 						cout<<val<<"\t";
 						if(k==2){
 							cout<<"\t"<<strided_force[3*particle+k]<<"\t"<<strided_force[3*particle+k]<<"\t"<<p2<<endl;
+							if(p2==193){
+								cout<<"XXXXXXXXXXXXXxX"<<endl;
+							}
 						}
 					}
 
@@ -128,6 +129,7 @@ class OctreeNode {
 						double val = G*mass*particle_ids.size()*drvec[k]/(eps+rmag*rmag*rmag);
 						strided_force[3*particle+k] += val;
 
+
 					}
 				} else {
 					// call this procedure on each of this nodes children
@@ -135,7 +137,20 @@ class OctreeNode {
 						node->calcForce(particle, strided_pos, strided_force);
 					}
 				}
-			}
+			// } else if(particle_ids.find(particle) != particle_ids.end() || (particle_ids.size()==0)){
+
+
+			} 
+			// else {
+				// cout<<"========"<<endl;
+				// cout<<particle<<endl;
+				// cout<<particle_ids.size()<<endl;
+				// for(auto x : particle_ids){
+				// 	cout<<x<<endl;
+				// }
+				// cout<<"========"<<endl;
+				// exit(0);
+			// }
 
 		}
 
@@ -182,7 +197,7 @@ class OctreeNode {
 					// Add new nodes to children list
 					children.push_back(temp);
 
-					// As we go along making the quadrants, check which one it should be put into, and recursively add it to that quadrant
+					// As we go along making the octants, check which one it should be put into, and recursively add it to that octanct
 					for(auto p_id : particle_ids){
 						// This was done this way because we moved to hash set to store particles so no notion of getting the 'first' particle
 						// However, there is a perf hit here because we are accessing strided_pos when already have x,y,z for that particle

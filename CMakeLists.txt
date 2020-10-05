@@ -10,7 +10,7 @@ find_package(Boost REQUIRED COMPONENTS program_options filesystem)
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 include_directories(${Boost_INCLUDE_DIRS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11 -mtune=native -march=native -fopenmp -Wextra -fsanitize=address")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11 -fopenmp -Wextra -fsanitize=address")
 add_executable(plummer_collision src/plummer_collision.cpp)
 #add_executable(unit_tests src/tests/unit_tests.cpp)
 target_link_libraries(plummer_collision ${LIBS})
