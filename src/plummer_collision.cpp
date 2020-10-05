@@ -126,7 +126,9 @@ int main ( int argc, char *argv[] ){
 	// cout<<root_node<<endl;
 	// for(auto node: root_node->children){
 	// 	node->printBoundaries();
-
+	for(int i = 0; i<n;i++){
+		cout<<i<<"\t"<<node_map[i]<<endl;
+	}
 	// }
 	// for(int i=0; i<n; i++){
 	// 	cout<<i<<"\t"<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<"\t"<<node_map[i]<<endl;
@@ -137,23 +139,17 @@ int main ( int argc, char *argv[] ){
 		root_node->calcForce(i, strided_pos, strided_force);	
 	}
 	// cout<<get_wall_time()-wt<<endl;
-  cout<<"-----------"<<endl;
+    cout<<"-----------"<<endl;
 	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
 	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
 	cout<<endl;
 
-	strided_force[0] = 0.;
-	strided_force[1] = 0.;
-	strided_force[2] = 0.;
-
-	strided_force[3] = 0.;
-	strided_force[4] = 0.;
-	strided_force[5] = 0.;
+	fill(strided_force.begin(),strided_force.end(),0.);
 
 	// wt = get_wall_time();
 	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
 	// cout<<get_wall_time()-wt<<endl;
-  cout<<"-----------"<<endl;
+    cout<<"-----------"<<endl;
 	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
 	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
 
