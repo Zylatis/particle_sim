@@ -106,54 +106,54 @@ int main ( int argc, char *argv[] ){
 
   cout<<setprecision(15)<<endl;
 
-	strided_pos[0] = -15;
-	strided_pos[1] = -15;
-	strided_pos[2] = -15;
+	// strided_pos[0] = -15;
+	// strided_pos[1] = -15;
+	// strided_pos[2] = -15;
 
-	strided_pos[3] = -1;
-	strided_pos[4] = -1;
-	strided_pos[5] = -1;
+	// strided_pos[3] = -1;
+	// strided_pos[4] = -1;
+	// strided_pos[5] = -1;
 
 	wt = get_wall_time();
-	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
-	node_list.push_back(root_node);
-	for(int i = 0;i<n;i++){
+	// OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
+	// node_list.push_back(root_node);
+	// for(int i = 0;i<n;i++){
 		// cout<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
-		root_node->addParticle(i, strided_pos, node_map, node_list);		
-	}
+		// root_node->addParticle(i, strided_pos, node_map, node_list);		
+	// }
 	// cout<<get_wall_time()-wt<<endl;
 	wt = get_wall_time();
 	// cout<<root_node<<endl;
 	// for(auto node: root_node->children){
 	// 	node->printBoundaries();
-	for(int i = 0; i<n;i++){
-		cout<<i<<"\t"<<node_map[i]<<endl;
-	}
+	// for(int i = 0; i<n;i++){
+		// cout<<i<<"\t"<<node_map[i]<<endl;
+	// }
 	// }
 	// for(int i=0; i<n; i++){
 	// 	cout<<i<<"\t"<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<"\t"<<node_map[i]<<endl;
 	// }
 	
-	#pragma omp parallel for 
-	for(int i = 0; i<n;i++){
-		root_node->calcForce(i, strided_pos, strided_force);	
-	}
+	// #pragma omp parallel for 
+	// for(int i = 0; i<n;i++){
+		// root_node->calcForce(i, strided_pos, strided_force);	
+	// }
 	// cout<<get_wall_time()-wt<<endl;
-    cout<<"-----------"<<endl;
-	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
-	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
-	cout<<endl;
+    // cout<<"-----------"<<endl;
+	// cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	// cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+	// cout<<endl;
 
-	fill(strided_force.begin(),strided_force.end(),0.);
+	// fill(strided_force.begin(),strided_force.end(),0.);
 
 	// wt = get_wall_time();
-	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
+	// calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy);
 	// cout<<get_wall_time()-wt<<endl;
-    cout<<"-----------"<<endl;
-	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
-	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+    // cout<<"-----------"<<endl;
+	// cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	// cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
 
-	exit(0);
+	// exit(0);
 
 	// Init leapfrom half step
 	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy) ;

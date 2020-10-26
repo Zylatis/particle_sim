@@ -14,7 +14,7 @@ void calc_force_strided( const vector<double> &strided_pos_vec, const vector<dou
 	
 	fill(strided_force.begin(), strided_force.end(),0.);
 
-	// #pragma omp parallel for //schedule(static)
+	#pragma omp parallel for //schedule(static)
 	for(int i = 0; i<n;i++){
 		for(int j = 0; j<n; j++){
 			if(i!=j){
@@ -27,12 +27,12 @@ void calc_force_strided( const vector<double> &strided_pos_vec, const vector<dou
 				for(int k = 0; k<3;k++){
 					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
 					strided_force[3*i+k] += val;
-					if(i==0){
-						cout<<val<<"\t";
-						if(k==2){
-							cout<<strided_force[3*i+k]<<"\t"<<j<<endl;
-						}
-					}
+					// if(i==0){
+					// 	cout<<val<<"\t";
+					// 	if(k==2){
+					// 		cout<<strided_force[3*i+k]<<"\t"<<j<<endl;
+					// 	}
+					// }
 					// strided_force_threadcpy[thread_id][3*i+k] += val;
 					// strided_force_threadcpy[thread_id][3*j+k] -= val;
 				}
