@@ -1,0 +1,1 @@
+cl /O2 /openmp src/plummer_collision.cpp
