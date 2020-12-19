@@ -158,7 +158,7 @@ class OctreeNode {
 
 		// Function to be called recursively to add a particle to the tree (called on root node externally)
 		int addParticle(int particle, const vector<double> &strided_pos, vector<OctreeNode*> &node_map, vector<OctreeNode*> &node_list){
-
+			
 			// Get 3D coords for incoming particle
 			double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
 

@@ -34,8 +34,7 @@ int main ( int argc, char *argv[] ){
 		thread_id = omp_get_thread_num();
 	}
 
-	srand(1);
-	default_random_engine rands;
+	default_random_engine rands(30);
 	int n = config.n_particles; 
 	mass = 1./n;
 	int step(0), file_n(0);
@@ -44,7 +43,7 @@ int main ( int argc, char *argv[] ){
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
 	vector<current_dtype>  strided_dt_threadcpy(n_threads*3, 0.);
-	double xmin(-20), xmax(20), ymin(-20), ymax(20), zmin(-20), zmax(20); // TODO add assert that all particles produced inside box
+	double xmin(-30), xmax(30), ymin(-30), ymax(30), zmin(-30), zmax(30); // TODO add assert that all particles produced inside box
 
 
 	vector<OctreeNode*> node_map(n);
@@ -69,23 +68,21 @@ int main ( int argc, char *argv[] ){
 		}
 	}
 
-
+	write_state(strided_pos, "debug_pos");
 	// Initialise BH
 	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
 	node_list.push_back(root_node);
 	for(int i = 0;i<n;i++){
-		// cout<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
+
 		root_node->addParticle(i, strided_pos, node_map, node_list);		
 	}
 
 
-
-	// begin test
 	#pragma omp parallel for 
 	for(int i = 0; i<n;i++){
 		root_node->calcForce(i, strided_pos, strided_force);	
 	}
-	// cout<<get_wall_time()-wt<<endl;
+
     cout<<"-----------"<<endl;
 	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
 	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
@@ -100,25 +97,32 @@ int main ( int argc, char *argv[] ){
 	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
 
 
+	for(int i = 0; i<n;i++){
+		if(node_map[i]==0){
+			cout<<i<<endl;
+			cout<<strided_pos[3*i]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
+			cout<<endl;
+		}
+
+	}
+
 	exit(0);
 	// Init leapfrom half step
-	// leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
+	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
 
 	
-	// cout<<"Initial totalE: " + to_string(totalE)<<endl;
-	// write_state(strided_pos, to_string(file_n)+"_pos");
-	// double wt = get_wall_time();
-	// while(t<tmax){
+	cout<<"Initial totalE: " + to_string(totalE)<<endl;
+	write_state(strided_pos, to_string(file_n)+"_pos");
+	double wt = get_wall_time();
+	while(t<tmax){
 	
-	// 	leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
-	// 	// if(step%10==0){
-	// 	// 	write_state(strided_pos, to_string(file_n)+"_pos");
-	// 	// 	file_n++;
-	// 	// }
-	// 	t += dt;
-	// 	step++;
-	// 	progress( t/tmax, totalE );
-	// }
+		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
+
+
+		t += dt;
+		step++;
+		progress( t/tmax, totalE );
+	}
 
 	// GLFWwindow* window;
   // if (!glfwInit())
@@ -129,10 +133,10 @@ int main ( int argc, char *argv[] ){
   // glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 
   // window = glfwCreateWindow(640, 480, "Look mah!", NULL, NULL);
-	// cout<<"\n"<<endl;
-	// double t_total = ( get_wall_time() - wt );
-	// cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
-	// cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
-	// cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
+	cout<<"\n"<<endl;
+	double t_total = ( get_wall_time() - wt );
+	cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
+	cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
+	cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
 	return 0;
 }
