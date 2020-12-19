@@ -1,4 +1,4 @@
-#define current_dtype float // should really be defined in config but whatever 
+#define current_dtype double // should really be defined in config but whatever 
 #define FILE_P 15; // precision of outputs
 
 int thread_id, n_threads; // ugly globals
@@ -13,6 +13,7 @@ using namespace std; // heresy
 #include "math_objs.h"
 #include "init_conditions.h"
 #include "integrator.h"
+#include "barnes_hutt_objs.h"
 
 // #include "imgui.h"
 // #include "imgui_impl_glfw.h"
@@ -43,8 +44,11 @@ int main ( int argc, char *argv[] ){
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
 	vector<current_dtype>  strided_dt_threadcpy(n_threads*3, 0.);
-	// vector<OctreeNode*> node_map(n);
-	// current_dtype xmin(-16), xmax(16), ymin(-16), ymax(16), zmin(-16), zmax(16);
+	double xmin(-20), xmax(20), ymin(-20), ymax(20), zmin(-20), zmax(20); // TODO add assert that all particles produced inside box
+
+
+	vector<OctreeNode*> node_map(n);
+	vector<OctreeNode*> node_list;
 
 	// Lazy setup of cluster 1
 	cout<<"Initalise:"<<endl;
@@ -65,23 +69,56 @@ int main ( int argc, char *argv[] ){
 		}
 	}
 
-	// Init leapfrom half step
-	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
-	
-	cout<<"Initial totalE: " + to_string(totalE)<<endl;
-	write_state(strided_pos, to_string(file_n)+"_pos");
-	double wt = get_wall_time();
-	while(t<tmax){
-	
-		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
-		// if(step%10==0){
-		// 	write_state(strided_pos, to_string(file_n)+"_pos");
-		// 	file_n++;
-		// }
-		t += dt;
-		step++;
-		progress( t/tmax, totalE );
+
+	// Initialise BH
+	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
+	node_list.push_back(root_node);
+	for(int i = 0;i<n;i++){
+		// cout<<strided_pos[3*i+0]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
+		root_node->addParticle(i, strided_pos, node_map, node_list);		
 	}
+
+
+
+	// begin test
+	#pragma omp parallel for 
+	for(int i = 0; i<n;i++){
+		root_node->calcForce(i, strided_pos, strided_force);	
+	}
+	// cout<<get_wall_time()-wt<<endl;
+    cout<<"-----------"<<endl;
+	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+	cout<<endl;
+
+	fill(strided_force.begin(),strided_force.end(),0.);
+
+
+	calc_force_strided(strided_pos, strided_vel, strided_force, n, totalE, strided_force_threadcpy, strided_dt_threadcpy);
+    cout<<"-----------"<<endl;
+	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+
+
+	exit(0);
+	// Init leapfrom half step
+	// leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
+
+	
+	// cout<<"Initial totalE: " + to_string(totalE)<<endl;
+	// write_state(strided_pos, to_string(file_n)+"_pos");
+	// double wt = get_wall_time();
+	// while(t<tmax){
+	
+	// 	leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, totalE, strided_force_threadcpy, strided_dt_threadcpy) ;
+	// 	// if(step%10==0){
+	// 	// 	write_state(strided_pos, to_string(file_n)+"_pos");
+	// 	// 	file_n++;
+	// 	// }
+	// 	t += dt;
+	// 	step++;
+	// 	progress( t/tmax, totalE );
+	// }
 
 	// GLFWwindow* window;
   // if (!glfwInit())
@@ -92,10 +129,10 @@ int main ( int argc, char *argv[] ){
   // glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 
   // window = glfwCreateWindow(640, 480, "Look mah!", NULL, NULL);
-	cout<<"\n"<<endl;
-	double t_total = ( get_wall_time() - wt );
-	cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
-	cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
-	cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
+	// cout<<"\n"<<endl;
+	// double t_total = ( get_wall_time() - wt );
+	// cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
+	// cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
+	// cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
 	return 0;
 }
