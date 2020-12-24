@@ -13,7 +13,7 @@ class OctreeNode {
 	private:
 		// Boundary of octant
 		double xmin, xmax, ymin, ymax, zmin, zmax, s;
-		double theta = 0.;
+		double theta = 0.3;
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
