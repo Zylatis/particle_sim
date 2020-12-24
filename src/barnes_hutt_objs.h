@@ -13,7 +13,7 @@ class OctreeNode {
 	private:
 		// Boundary of octant
 		double xmin, xmax, ymin, ymax, zmin, zmax, s;
-		double theta = 0.3;
+		double theta = 1.;
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
@@ -41,6 +41,13 @@ class OctreeNode {
 
 			s = xmax - xmin;
 		};
+
+		~OctreeNode(){
+			for(auto node : children){
+				delete node;
+			}
+
+		}
 
 		void printBoundaries(){
 			cout<<this<<"\t"<<particle_ids.size()<<endl;
@@ -79,13 +86,14 @@ class OctreeNode {
 		}
 
 		void calcForce(int particle, const vector<double> &strided_pos, vector<double> &strided_force){
-
 			array<double,3> drvec ={0.,0.,0.};
 			double rmag(-1);
-			double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
 			
 			// If current node is a leaf node, and particle in node is not the target particle, calculate two body force and add
 			if(particle_ids.size() == 1 && particle_ids.find(particle) == particle_ids.end()){
+
+				double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
+
 				// Get the particle ID of particle in this leaf node
 				int p2 = *particle_ids.begin();
 				// Calc dr
@@ -101,16 +109,6 @@ class OctreeNode {
 					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
 
 					strided_force[3*particle+k] += val;
-					// if(particle==0){
-					// 	cout<<val<<"\t";
-					// 	if(k==2){
-					// 		cout<<"\t"<<strided_force[3*particle+k]<<"\t"<<strided_force[3*particle+k]<<"\t"<<p2<<endl;
-					// 		if(p2==193){
-					// 			cout<<"XXXXXXXXXXXXXxX"<<endl;
-					// 		}
-					// 	}
-					// }
-
 				}
 
 			} else if(particle_ids.size()>1){
@@ -135,24 +133,17 @@ class OctreeNode {
 					}
 				} else {
 					// call this procedure on each of this nodes children
+					// cout<<"recursive call on "<<particle<<" on node "<<this<<" with "<<children.size()<<" children"<<endl;
+
 					for(auto node : children){
+
 						node->calcForce(particle, strided_pos, strided_force);
 					}
 				}
-			// } else if(particle_ids.find(particle) != particle_ids.end() || (particle_ids.size()==0)){
-
+	
 
 			} 
-			// else {
-				// cout<<"========"<<endl;
-				// cout<<particle<<endl;
-				// cout<<particle_ids.size()<<endl;
-				// for(auto x : particle_ids){
-				// 	cout<<x<<endl;
-				// }
-				// cout<<"========"<<endl;
-				// exit(0);
-			// }
+			
 
 		}
 
@@ -189,6 +180,7 @@ class OctreeNode {
 				for(int i = 0 ; i<8; i++){
 					
 					// Create new node (shock, raw pointers! Look at my face, this is my caring face. See how much I care?)
+					// TODO: use a custom memory allocator for this to avoid shitloads of 'new's
 					OctreeNode *temp = new OctreeNode( octants[3*i + 0][0], octants[3*i + 0][1], octants[3*i + 1][0], octants[3*i + 1][1], octants[3*i + 2][0], octants[3*i + 2][1] );
 
 					// Keep track of all our nodes mostly for book-keeping/debugging

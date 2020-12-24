@@ -23,6 +23,18 @@ using namespace std; // heresy
 // #include <GLFW/glfw3.h>
 
 
+void test_destructor(int n, int n_runs, Region &sim_region, auto strided_pos, auto node_map, auto node_list){
+	for(int x = 0;x<n_runs;x++){
+		cout<<x<<endl;
+		OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
+		for(int i = 0;i<n;i++){
+			root_node->addParticle(i, strided_pos, node_map, node_list);		
+		}
+		delete root_node;
+	}
+}
+
+
 // Main simulation
 int main ( int argc, char *argv[] ){
 	double wt;
@@ -56,6 +68,8 @@ int main ( int argc, char *argv[] ){
 	vector<OctreeNode*> node_map(n);
 	vector<OctreeNode*> node_list;
 
+
+
 	// Lazy setup of cluster 1
 	cout<<"Initalise:"<<endl;
 	wt = get_wall_time();
@@ -76,17 +90,22 @@ int main ( int argc, char *argv[] ){
 	}
 	// write_state(strided_pos, "debug_pos");
 	// Initialise BH
+	test_destructor(n, 500, sim_region, strided_pos, node_map, node_list);
 
+	exit(0);
 	OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
 	node_list.push_back(root_node);
 
 	cout<<"Building tree:"<<endl;
+	wt = get_wall_time();
 	for(int i = 0;i<n;i++){
 		root_node->addParticle(i, strided_pos, node_map, node_list);		
 	}
-
+	cout<<get_wall_time()-wt<<endl;
 	cout<<"Calculating force:"<<endl;
+	
 	wt = get_wall_time();
+
 	#pragma omp parallel for 
 	for(int i = 0; i<n;i++){
 		root_node->calcForce(i, strided_pos, strided_force);	
