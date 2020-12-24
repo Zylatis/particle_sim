@@ -40,7 +40,8 @@ int main ( int argc, char *argv[] ){
 	Region sim_region;
 
 	auto seed = chrono::system_clock::now().time_since_epoch().count();
-	seed = 1608785537296692664;
+	// seed = 1608785537296692664;
+	seed = 1;
 	cout<<"Random seed used: "<<seed<<endl;
 	default_random_engine rands(seed);
 
@@ -57,7 +58,7 @@ int main ( int argc, char *argv[] ){
 	int n = config.n_particles; 
 	mass = 1./n;
 	int step(0), file_n(0);
-	current_dtype dt(0.1f), t(0.), totalE(0.), tmax(config.tmax);;
+	current_dtype dt(0.1), t(0.), totalE(0.), tmax(config.tmax);;
 
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 
@@ -113,12 +114,12 @@ int main ( int argc, char *argv[] ){
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	write_state(strided_pos, to_string(step)+"_pos");
 	while(t<tmax){
-	
+		// cout<<t<<endl;	
 		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region) ;
 
 		t += dt;
 		step++;
-		if(step%2==0){
+		if(step%5==0){
 			file_n++;
 			write_state(strided_pos, to_string(file_n)+"_pos");
 		}

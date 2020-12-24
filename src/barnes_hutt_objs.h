@@ -13,7 +13,7 @@ class OctreeNode {
 	private:
 		// Boundary of octant
 		double xmin, xmax, ymin, ymax, zmin, zmax, s;
-		double theta = 0.5;
+		double theta = 0.;
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
@@ -87,12 +87,11 @@ class OctreeNode {
 		}
 
 		void calcForce(int particle, const vector<double> &strided_pos, vector<double> &strided_force){
-			array<double,3> drvec ={0.,0.,0.};
+			array<double,3> drvec = {0.,0.,0.};
 			double rmag(-1);
 			
 			// If current node is a leaf node, and particle in node is not the target particle, calculate two body force and add
 			if(particle_ids.size() == 1 && particle_ids.find(particle) == particle_ids.end()){
-
 				double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
 
 				// Get the particle ID of particle in this leaf node
@@ -113,11 +112,12 @@ class OctreeNode {
 				}
 
 			} else if(particle_ids.size()>1){
+
 				// else, calc s/d
 				for(int k = 0; k<3;k++){
 					drvec[k] = centre_of_mass[k] - strided_pos[3*particle+k];
-					
 				}
+
 				rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
 
 				double sd_frac = s/rmag;
@@ -128,9 +128,8 @@ class OctreeNode {
 					for(int k = 0; k<3;k++){
 						double val = G*mass*particle_ids.size()*drvec[k]/(eps+rmag*rmag*rmag);
 						strided_force[3*particle+k] += val;
-
-
 					}
+
 				} else {
 					// call this procedure on each of this nodes children 
 					// Doesn't seem cache friendly to basically DFS here...
@@ -138,11 +137,7 @@ class OctreeNode {
 						node->calcForce(particle, strided_pos, strided_force);
 					}
 				}
-	
-
 			} 
-			
-
 		}
 
 		// Function to be called recursively to add a particle to the tree (called on root node externally)

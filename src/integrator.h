@@ -61,14 +61,23 @@ void barnes_hutt_force_step(vector< current_dtype > &strided_pos, vector< curren
 }
 
 void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region){
+	// cout<<setprecision(15);
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] += strided_vel[3*i+k]*dt;
+			// cout<<strided_pos[3*i+k]<<"\t";
 		}
+		// cout<<endl;
 	}
+
+	// cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[3]<<endl;
+
 	// calc_force_strided(strided_pos, strided_force, n);
+	// cout<<setprecision(15) <<strided_force[0]<<"\t"<<strided_force[3]<<endl;
 	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region);
+	// cout<<setprecision(15) <<strided_force[0]<<"\t"<<strided_force[3]<<endl;
+	// cout<<"\t"<<endl;
 
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
