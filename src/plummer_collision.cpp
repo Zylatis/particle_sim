@@ -13,7 +13,6 @@ using namespace std; // heresy
 #include "math_objs.h"
 #include "init_conditions.h"
 #include "integrator.h"
-#include "barnes_hutt_objs.h"
 #include <chrono> 
 
 // #include "imgui.h"
@@ -61,14 +60,6 @@ int main ( int argc, char *argv[] ){
 	current_dtype dt(0.1f), t(0.), totalE(0.), tmax(config.tmax);;
 
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
-	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
-	vector<current_dtype>  strided_dt_threadcpy(n_threads*3, 0.);
-
-
-	vector<OctreeNode*> node_map(n);
-	vector<OctreeNode*> node_list;
-
-
 
 	// Lazy setup of cluster 1
 	cout<<"Initalise:"<<endl;
@@ -90,67 +81,47 @@ int main ( int argc, char *argv[] ){
 	}
 	// write_state(strided_pos, "debug_pos");
 	// Initialise BH
-	test_destructor(n, 500, sim_region, strided_pos, node_map, node_list);
+	// test_destructor(n, 500, sim_region, strided_pos, node_map, node_list);
 
-	exit(0);
-	OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
-	node_list.push_back(root_node);
+	// exit(0);
 
-	cout<<"Building tree:"<<endl;
-	wt = get_wall_time();
-	for(int i = 0;i<n;i++){
-		root_node->addParticle(i, strided_pos, node_map, node_list);		
-	}
-	cout<<get_wall_time()-wt<<endl;
-	cout<<"Calculating force:"<<endl;
-	
-	wt = get_wall_time();
+	// wt = get_wall_time();
+	// barnes_hutt_force_step(strided_pos, strided_vel, strided_force, dt, n, sim_region);
+	// cout<<(get_wall_time() - wt)<<endl;
 
-	#pragma omp parallel for 
-	for(int i = 0; i<n;i++){
-		root_node->calcForce(i, strided_pos, strided_force);	
-	}
-	cout<<(get_wall_time() - wt)<<endl;
+ //    cout<<"-----------"<<endl;
+	// cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	// cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+	// cout<<endl;
 
-    cout<<"-----------"<<endl;
-	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
-	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
-	cout<<endl;
+	// fill(strided_force.begin(),strided_force.end(),0.);
 
-	fill(strided_force.begin(),strided_force.end(),0.);
+	// wt = get_wall_time();
+	// calc_force_strided(strided_pos, strided_vel, strided_force, n);
+	// cout<<(get_wall_time() - wt)<<endl;
 
-	wt = get_wall_time();
-	calc_force_strided(strided_pos, strided_vel, strided_force, n);
-	cout<<(get_wall_time() - wt)<<endl;
-
-    cout<<"-----------"<<endl;
-	cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
-	cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
+ //    cout<<"-----------"<<endl;
+	// cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
+	// cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
 
 
-	// for(int i = 0; i<n;i++){
-	// 	if(node_map[i]==0){
-	// 		cout<<i<<endl;
-	// 		cout<<strided_pos[3*i]<<"\t"<<strided_pos[3*i+1]<<"\t"<<strided_pos[3*i+2]<<endl;
-	// 		cout<<endl;
-	// 	}
-
-	// }
-
-	exit(0);
+	// exit(0);
 	// Init leapfrom half step
 	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
 
 	
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
-	write_state(strided_pos, to_string(file_n)+"_pos");
+	write_state(strided_pos, to_string(step)+"_pos");
 	while(t<tmax){
 	
-		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
-
+		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region) ;
 
 		t += dt;
 		step++;
+		if(step%2==0){
+			file_n++;
+			write_state(strided_pos, to_string(file_n)+"_pos");
+		}
 		progress( t/tmax, totalE );
 	}
 

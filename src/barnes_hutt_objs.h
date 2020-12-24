@@ -13,7 +13,7 @@ class OctreeNode {
 	private:
 		// Boundary of octant
 		double xmin, xmax, ymin, ymax, zmin, zmax, s;
-		double theta = 1.;
+		double theta = 0.5;
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
@@ -22,6 +22,9 @@ class OctreeNode {
 		unordered_set<int> particle_ids;
 
 		// List of child nodes
+		// TODO: Think of whether or not it makes sense to allocate a size of 8 here
+		// I think it is either 8 or 0 so from a memory packing point of view setting to 8 is probably fine? Can test...
+		// Would need to think of how to deal with the push_back when adding
 		vector<OctreeNode*> children;
 
 		// Booking keeping of parent node
@@ -56,14 +59,12 @@ class OctreeNode {
 			cout<<zmin<<"\t"<<zmax<<endl;
 			cout<<endl;
 		}
+
 		// Subdivide a given 3D space into octants
 		vector<vector<double>> calcOctants(){
 			double dx = s/2.;
 			double dy = s/2.;
 			double dz = s/2.;
-			// double dx = (xmax-xmin)*0.5;
-			// double dy = (ymax-ymin)*0.5;
-			// double dz = (zmax-zmin)*0.5;
 			
 			vector<vector<double> > children_boxes = {
 					{xmin,xmin + dx}, {ymin, ymin + dy}, {zmin, zmin + dz},
@@ -123,7 +124,6 @@ class OctreeNode {
 
 				// if octant width/dist between target particle and node CoM < threshold 
 				if(sd_frac < theta){
-					// cout<<"considering node as single body"<<endl;
 					// Consider this node as a single body, compute force as force from particle of mass total mass at CoM
 					for(int k = 0; k<3;k++){
 						double val = G*mass*particle_ids.size()*drvec[k]/(eps+rmag*rmag*rmag);
@@ -132,11 +132,9 @@ class OctreeNode {
 
 					}
 				} else {
-					// call this procedure on each of this nodes children
-					// cout<<"recursive call on "<<particle<<" on node "<<this<<" with "<<children.size()<<" children"<<endl;
-
+					// call this procedure on each of this nodes children 
+					// Doesn't seem cache friendly to basically DFS here...
 					for(auto node : children){
-
 						node->calcForce(particle, strided_pos, strided_force);
 					}
 				}
@@ -180,7 +178,7 @@ class OctreeNode {
 				for(int i = 0 ; i<8; i++){
 					
 					// Create new node (shock, raw pointers! Look at my face, this is my caring face. See how much I care?)
-					// TODO: use a custom memory allocator for this to avoid shitloads of 'new's
+					// TODO: use a custom memory allocator for this to avoid shitloads of allocs/deallocs
 					OctreeNode *temp = new OctreeNode( octants[3*i + 0][0], octants[3*i + 0][1], octants[3*i + 1][0], octants[3*i + 1][1], octants[3*i + 2][0], octants[3*i + 2][1] );
 
 					// Keep track of all our nodes mostly for book-keeping/debugging
