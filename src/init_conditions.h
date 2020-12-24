@@ -1,5 +1,20 @@
+current_dtype region_size = 30;
+struct Region {
+	    current_dtype xmin = -region_size;
+	    current_dtype ymin = -region_size;
+	    current_dtype zmin = -region_size;
 
-vector<vector<current_dtype> > init(  default_random_engine &rands, const vector<current_dtype> &centre, const vector<current_dtype> &centre_V ){
+	    current_dtype xmax = region_size;
+	    current_dtype ymax = region_size;
+	    current_dtype zmax = region_size;
+	};
+
+bool particleInRegion(double x, double y, double z, const Region &region){ // Should really call this from Barnes Hutt routine too 
+	return (x<= region.xmax && x> region.xmin && y <= region.ymax && y > region.ymin && z <= region.zmax && z> region.zmin);
+}
+
+
+vector<vector<current_dtype> > init(  default_random_engine &rands, const vector<current_dtype> &centre, const vector<current_dtype> &centre_V, const Region &sim_region ){
 	
 	vector<vector< current_dtype> > data = {vector<current_dtype>(3,0), vector<current_dtype>(3,0)};
 
@@ -19,7 +34,7 @@ vector<vector<current_dtype> > init(  default_random_engine &rands, const vector
 		y = y_dist(rands);
 	}
 	
-	//~ V = x*sqrt(2.)*pow((1.+pow(r,2.)),-0.25);
+	//~ V = x*sqrt(2.)*pow((1.+pow(r,2.)),-0.25);	
 	V = x*pow((1.+pow(r,2.)),-0.25); // modified here for 2 clusters
 	
 	
@@ -30,5 +45,12 @@ vector<vector<current_dtype> > init(  default_random_engine &rands, const vector
 		        V*cos(theta)+ centre_V[2]};
 	
 	//~ cout<<(V<sqrt(2)*pow((r+1),-.25))<<endl;
+	
+	// If we find a point out of bounds, recursively call the function again until it's inside the required region
+	if(!particleInRegion(data[0][0],data[0][1],data[0][2], sim_region)){
+		cout<<"Found out of bounds point, resampling:"<<endl;
+		data = init( rands, centre, centre_V, sim_region );
+	}	        
+
 	return data;
 }

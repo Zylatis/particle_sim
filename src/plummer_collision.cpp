@@ -34,7 +34,7 @@ int main ( int argc, char *argv[] ){
 		thread_id = omp_get_thread_num();
 	}
 
-	default_random_engine rands(30);
+	default_random_engine rands(1);
 	int n = config.n_particles; 
 	mass = 1./n;
 	int step(0), file_n(0);
@@ -43,7 +43,7 @@ int main ( int argc, char *argv[] ){
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 	vector<vector<current_dtype> > strided_force_threadcpy(n_threads, vector<current_dtype>(3*n,0.));
 	vector<current_dtype>  strided_dt_threadcpy(n_threads*3, 0.);
-	double xmin(-30), xmax(30), ymin(-30), ymax(30), zmin(-30), zmax(30); // TODO add assert that all particles produced inside box
+	Region sim_region;
 
 
 	vector<OctreeNode*> node_map(n);
@@ -52,7 +52,7 @@ int main ( int argc, char *argv[] ){
 	// Lazy setup of cluster 1
 	cout<<"Initalise:"<<endl;
 	for(int i = 0; i<n/2; i++){	
-		vector<vector<current_dtype> > temp = init( rands,{-10.,-10.,-10.},{0.06,0.02,0.02});
+		vector<vector<current_dtype> > temp = init( rands,{-10.,-10.,-10.},{0.06,0.02,0.02}, sim_region);
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] = temp[0][k];
 			strided_vel[3*i+k] = temp[1][k];
@@ -61,7 +61,7 @@ int main ( int argc, char *argv[] ){
 
 	// Lazy setup of cluster 2
 	for(int i = n/2; i<n; i++){	
-		vector<vector<current_dtype> > temp = init( rands,{10.,10.,10.},{-.07,-0.01,-0.02});
+		vector<vector<current_dtype> > temp = init( rands,{10.,10.,10.},{-.07,-0.01,-0.02}, sim_region);
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] = temp[0][k];
 			strided_vel[3*i+k] = temp[1][k];
@@ -70,7 +70,7 @@ int main ( int argc, char *argv[] ){
 
 	write_state(strided_pos, "debug_pos");
 	// Initialise BH
-	OctreeNode* root_node = new OctreeNode(xmin, xmax, ymin, ymax, zmin, zmax);
+	OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
 	node_list.push_back(root_node);
 	for(int i = 0;i<n;i++){
 

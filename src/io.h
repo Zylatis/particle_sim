@@ -24,7 +24,7 @@ const Config read_config(const char* filepath){
     // but that would prob require STL strings which i'd like to try avoid for now, just to see if i can!
 
     // Actually reasonable to ask wtf am i doing making this a struct as it's only used once and even then immediately chopped into bits
-    // Guess I have to as mixed types? can't even use a map unless i wanna fuck around with void pointers (vomit)
+    // Guess I have to as mixed types? Can't even use a map unless i wanna fuck around with void pointers (vomit)
 
     Config config_data;
     cout<<"Loading config:"<<endl;
