@@ -1,11 +1,28 @@
 #include <assert.h> 
 #include "barnes_hutt_objs.h"
+// #include "init_conditions.h"
+// #include <easy/profiler.h>
+bool particleInRegion2(double x, double y, double z, const Region &region){ // Should really call this from Barnes Hutt routine too 
+	return (x<= region.xmax && x> region.xmin && y <= region.ymax && y > region.ymin && z <= region.zmax && z> region.zmin);
+}
 
 #define likely(x)       __builtin_expect(!!(x), 1)
 
+double roundoff(double value, double prec)
+{
+  double pow_10 = pow(10.0, (double)prec);
+  return round(value * pow_10) / pow_10;
+}
+
+// void get_diffs(vector<vector<double> > &vec1, vector<vector<double> > &vec2){
+
+
+// }
+
 // Calc force
 void calc_force_strided(  const vector<current_dtype> &strided_pos_vec, vector<current_dtype > &strided_force, int n ){
-	
+	// EASY_FUNCTION();
+
 	fill(strided_force.begin(), strided_force.end(),0.);
 
 	#pragma omp parallel for 
@@ -27,12 +44,10 @@ void calc_force_strided(  const vector<current_dtype> &strided_pos_vec, vector<c
 			}
 		}
 	}	
-
 }
 
-
-
-void barnes_hutt_force_step(vector< current_dtype > &strided_pos, vector< current_dtype > &strided_force, int n, Region &sim_region){
+void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_force, int n, const Region &sim_region){
+	// EASY_FUNCTION();
 	fill(strided_force.begin(), strided_force.end(),0.);
 
 	vector<OctreeNode*> node_map(n);
@@ -41,52 +56,40 @@ void barnes_hutt_force_step(vector< current_dtype > &strided_pos, vector< curren
 	OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
 	node_list.push_back(root_node);
 
-	// cout<<"Building tree:"<<endl;
-	// auto wt = get_wall_time();
 	for(int i = 0;i<n;i++){
 		root_node->addParticle(i, strided_pos, node_map, node_list);		
 	}
-	// cout<<get_wall_time()-wt<<endl;
-	// cout<<"Calculating force:"<<endl;
-	
-	// wt = get_wall_time();
 
 	#pragma omp parallel for 
 	for(int i = 0; i<n;i++){
 		// TODO: this might be really dumb maybe we should make use of the hashmap of node<->particle locs to do this?
 		root_node->calcForce(i, strided_pos, strided_force);	
 	}
-	// cout<<(get_wall_time() - wt)<<endl;
 	delete root_node;
 }
 
-void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region){
-	// cout<<setprecision(15);
+void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n){
+
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
 			strided_pos[3*i+k] += strided_vel[3*i+k]*dt;
-			// cout<<strided_pos[3*i+k]<<"\t";
+			// strided_pos[3*i+k] = roundoff(strided_pos[3*i+k],10);
+
 		}
-		// cout<<endl;
 	}
 
-	// cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[3]<<endl;
-
-	// calc_force_strided(strided_pos, strided_force, n);
-	// cout<<setprecision(15) <<strided_force[0]<<"\t"<<strided_force[3]<<endl;
-	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region);
-	// cout<<setprecision(15) <<strided_force[0]<<"\t"<<strided_force[3]<<endl;
-	// cout<<"\t"<<endl;
-
+	calc_force_strided(strided_pos, strided_force, n);
+	
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
+			// strided_force[3*i+k] = roundoff(strided_force[3*i+k],10);
 			strided_vel[3*i+k] += strided_force[3*i+k]*dt;
+			strided_vel[3*i+k] = roundoff(strided_vel[3*i+k],10);
 		}
 	}
 }
-
 
 
 // Initial t0 leapfrog step
@@ -97,6 +100,48 @@ void leapfrog_init_step_strided( const vector< current_dtype > &strided_pos, vec
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
 			strided_vel[3*i+k] += strided_force[3*i+k]*dt*0.5;
+		}
+	}
+}
+
+// Debug purposes
+void leapfrog_init_step_strided_BH( const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, const Region &sim_region){
+	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region);
+
+	#pragma omp parallel for
+	for(int i = 0; i<n; i++){
+		for(int k = 0; k<3;k++){
+			strided_vel[3*i+k] += strided_force[3*i+k]*dt*0.5;
+		}
+	}
+}
+
+// Debug purposes
+void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n){
+
+	#pragma omp parallel for
+	for(int i = 0; i<n; i++){
+		for(int k = 0; k<3;k++){
+			strided_pos[3*i+k] += strided_vel[3*i+k]*dt;
+			// strided_pos[3*i+k] = roundoff(strided_pos[3*i+k],10);
+		}
+		if(!particleInRegion2(strided_pos[3*i],strided_pos[3*i+1],strided_pos[3*i+2], sim_region)){
+				cout<<"ERROR"<<endl;
+				cout<<i<<endl;
+				exit(0);
+			}
+	}
+
+	
+	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region);
+	
+	#pragma omp parallel for
+	for(int i = 0; i<n; i++){
+		for(int k = 0; k<3;k++){
+			// strided_force[3*i+k] = roundoff(strided_force[3*i+k],10);
+			strided_vel[3*i+k] += strided_force[3*i+k]*dt;
+			strided_vel[3*i+k] = roundoff(strided_vel[3*i+k],10);
+
 		}
 	}
 }

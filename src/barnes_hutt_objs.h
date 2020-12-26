@@ -1,13 +1,14 @@
 #include <unordered_set>
 
+// TODO: ensure all dtypes aligned with current_dtype (can't get some highlighting for that shit?)
 template <typename T> 
 void print_container(T &v){
 	for(int i = 0; i<v.size();i++){
 		cout<<v[i]<<"\t";
 	}
+
 	cout<<endl;
 }
-
 
 class OctreeNode {
 	private:
@@ -88,7 +89,7 @@ class OctreeNode {
 
 		void calcForce(int particle, const vector<double> &strided_pos, vector<double> &strided_force){
 			array<double,3> drvec = {0.,0.,0.};
-			double rmag(-1);
+			double rmag;
 			
 			// If current node is a leaf node, and particle in node is not the target particle, calculate two body force and add
 			if(particle_ids.size() == 1 && particle_ids.find(particle) == particle_ids.end()){
@@ -96,6 +97,7 @@ class OctreeNode {
 
 				// Get the particle ID of particle in this leaf node
 				int p2 = *particle_ids.begin();
+				
 				// Calc dr
 				for(int k = 0; k<3;k++){
 					drvec[k] = strided_pos[3*p2+k] - strided_pos[3*particle+k];				

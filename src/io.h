@@ -69,7 +69,7 @@ void write_state( vector< current_dtype >  &array, string file_name){
     string file = outputFolder+file_name+".dat";
     o.open(file.c_str(), ios::out);
     for(int i = 0; i<size; i++){
-        o<< array[3*i]<<"\t"<<array[3*i+1]<<"\t"<<array[3*i+2]<<endl;
+        o<<setprecision(13)<< array[3*i]<<"\t"<<array[3*i+1]<<"\t"<<array[3*i+2]<<endl;
     }
     o.close();
 }

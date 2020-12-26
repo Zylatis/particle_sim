@@ -14,6 +14,7 @@ using namespace std; // heresy
 #include "init_conditions.h"
 #include "integrator.h"
 #include <chrono> 
+// #include <easy/profiler.h>
 
 // #include "imgui.h"
 // #include "imgui_impl_glfw.h"
@@ -36,6 +37,8 @@ void test_destructor(int n, int n_runs, Region &sim_region, auto strided_pos, au
 
 // Main simulation
 int main ( int argc, char *argv[] ){
+	// EASY_PROFILER_ENABLE
+	// EASY_FUNCTION(profiler::colors::Magenta);
 	double wt;
 	Region sim_region;
 
@@ -56,7 +59,7 @@ int main ( int argc, char *argv[] ){
 	}
 
 	int n = config.n_particles; 
-	mass = 1./n;
+	mass = 0.001;
 	int step(0), file_n(0);
 	current_dtype dt(0.1), t(0.), totalE(0.), tmax(config.tmax);;
 
@@ -80,65 +83,44 @@ int main ( int argc, char *argv[] ){
 			strided_vel[3*i+k] = temp[1][k];
 		}
 	}
-	// write_state(strided_pos, "debug_pos");
-	// Initialise BH
-	// test_destructor(n, 500, sim_region, strided_pos, node_map, node_list);
+	vector<current_dtype> strided_pos_BH(strided_pos), strided_vel_BH(strided_vel), strided_force_BH(strided_force);
 
-	// exit(0);
-
-	// wt = get_wall_time();
-	// barnes_hutt_force_step(strided_pos, strided_vel, strided_force, dt, n, sim_region);
-	// cout<<(get_wall_time() - wt)<<endl;
-
- //    cout<<"-----------"<<endl;
-	// cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
-	// cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
-	// cout<<endl;
-
-	// fill(strided_force.begin(),strided_force.end(),0.);
-
-	// wt = get_wall_time();
-	// calc_force_strided(strided_pos, strided_vel, strided_force, n);
-	// cout<<(get_wall_time() - wt)<<endl;
-
- //    cout<<"-----------"<<endl;
-	// cout<<setprecision(15)<<strided_force[0]<<"\t"<<strided_force[1]<<"\t"<<strided_force[2]<<endl;
-	// cout<<setprecision(15)<<strided_force[3]<<"\t"<<strided_force[4]<<"\t"<<strided_force[5]<<endl;
-
-
-	// exit(0);
-	// Init leapfrom half step
 	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
+	leapfrog_init_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region) ;
 
-	
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	write_state(strided_pos, to_string(step)+"_pos");
 	while(t<tmax){
-		// cout<<t<<endl;	
-		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region) ;
+		cout<<t<<endl;
+		// strided_pos_BH = strided_pos;
+		// strided_vel_BH = strided_vel;
+		// strided_force_BH = strided_force;
+		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region, file_n) ;
+		leapfrog_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, file_n) ;
 
 		t += dt;
 		step++;
-		if(step%5==0){
+		if(step%10==0){
 			file_n++;
-			write_state(strided_pos, to_string(file_n)+"_pos");
+			write_state(strided_pos, "data_direct/" + to_string(file_n)+"_pos");
+			write_state(strided_vel, "data_direct/" + to_string(file_n)+"_vel");
+			write_state(strided_force, "data_direct/" + to_string(file_n)+"_force");
+
+			write_state(strided_pos_BH, "data_bh/" + to_string(file_n)+"_pos");
+			write_state(strided_vel_BH, "data_bh/" + to_string(file_n)+"_vel");
+			write_state(strided_force_BH, "data_bh/" + to_string(file_n)+"_force");
+
 		}
-		progress( t/tmax, totalE );
+		// progress( t/tmax, totalE );
 	}
 
-	// GLFWwindow* window;
-  // if (!glfwInit())
-  //   exit(EXIT_FAILURE);
-  
-  // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  // glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
-
-  // window = glfwCreateWindow(640, 480, "Look mah!", NULL, NULL);
+	
 	cout<<"\n"<<endl;
 	double t_total = ( get_wall_time() - wt );
 	cout<< "Total time: " <<setprecision(3) << t_total <<"s"<<endl;
 	cout<< "FPS: "<< setprecision(2) << (double) step/t_total <<endl;
 	cout<<setprecision(15) <<strided_pos[0]<<"\t"<<strided_pos[10]<<endl;
+
+
 	return 0;
 }
