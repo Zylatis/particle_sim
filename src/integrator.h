@@ -48,31 +48,32 @@ void calc_force_strided(  const vector<current_dtype> &strided_pos_vec, vector<c
 	}	
 }
 
-void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_force, int n, const Region &sim_region){
+void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_force, int n, const Region &sim_region, NodePool<OctreeNode> &node_pool){
 	// EASY_FUNCTION();
 	fill(strided_force.begin(), strided_force.end(),0.);
 
 	vector<OctreeNode*> node_map(n);
 	vector<OctreeNode*> node_list;
+	// cout<<node_pool.get()<<endl;
 
-	OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
+	OctreeNode* root_node = new (node_pool.get()) OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
+
 	node_list.push_back(root_node);
-
 	for(int i = 0;i<n;i++){
-		root_node->addParticle(i, strided_pos, node_map, node_list);		
-	}
+		root_node->addParticle(i, strided_pos, node_map, node_list, node_pool);		
 
-	// for(auto node :node_list){
-	// 	cout<<node<<"\t"<<node->children.size()<<"\t"<<node->particle_ids.size()<<endl;
-	// }
+	}
 
 	#pragma omp parallel for 
 	for(int i = 0; i<n;i++){
 		// TODO: this might be really dumb maybe we should make use of the hashmap of node<->particle locs to do this?
 		root_node->calcForce(i, strided_pos, strided_force);	
 	}
+
+	exit(0);
 	
-	delete root_node;
+	node_pool.reset();
+	// delete root_node;
 }
 
 void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n){
@@ -110,8 +111,17 @@ void leapfrog_init_step_strided( const vector< current_dtype > &strided_pos, vec
 }
 
 // Debug purposes
-void leapfrog_init_step_strided_BH( const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, const Region &sim_region){
-	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region);
+void leapfrog_init_step_strided_BH(
+		const vector< current_dtype > &strided_pos,
+		vector< current_dtype > &strided_vel,
+		vector< current_dtype > &strided_force,
+		current_dtype dt,
+		int n,
+		const Region &sim_region,
+		 NodePool<OctreeNode> &node_pool
+	){
+
+	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region, node_pool);
 	// cout<<"X"<<endl;
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
@@ -122,7 +132,9 @@ void leapfrog_init_step_strided_BH( const vector< current_dtype > &strided_pos, 
 }
 
 // Debug purposes
-void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n){
+void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n,
+	 NodePool<OctreeNode> &node_pool
+	){
 
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
@@ -136,7 +148,7 @@ void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< cur
 			}
 	}
 
-	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region);
+	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region, node_pool);
 	// cout<<"update vel"<<endl;
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){

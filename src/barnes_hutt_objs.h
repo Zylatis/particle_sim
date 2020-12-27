@@ -1,5 +1,36 @@
 #include <unordered_set>
 
+template <typename T> 
+class NodePool {
+	private:
+
+	public:
+		unsigned int loc = 0;
+
+		vector<T> node_pool; // better way to have a buffer?
+		NodePool(unsigned int n){
+			node_pool.reserve(n);
+		};
+
+		~NodePool(){
+			node_pool.clear();
+		}
+
+		T* get(){
+
+			loc++;
+			return &node_pool[loc-1];
+		}
+
+		void reset(){
+			for(int i = 0; i<loc;++i){
+				node_pool[i].reset();
+			}
+			loc = 0;
+		}
+};
+
+
 // TODO: ensure all dtypes aligned with current_dtype (can't get some highlighting for that shit?)
 template <typename T> 
 void print_container(T &v){
@@ -27,6 +58,24 @@ class OctreeNode {
 
 		// Booking keeping of parent node
 		OctreeNode* parent;
+
+		void reset(){
+			// cout<<"X"<<endl;
+			particle_ids.clear();
+			children = {};
+			centre_of_mass = {};
+			parent = NULL;
+			xmin = 0;
+			xmax = 0;
+
+			ymin = 0;
+			ymax = 0;
+
+			zmin = 0;
+			zmax = 0;
+
+			s = 0;
+		}
 
 		// Constructor
 		// Given that the region is always square we could refactor this to use 's' instead
@@ -144,7 +193,7 @@ class OctreeNode {
 		}
 
 		// Function to be called recursively to add a particle to the tree (called on root node externally)
-		int addParticle(int particle, const vector<double> &strided_pos, vector<OctreeNode*> &node_map, vector<OctreeNode*> &node_list){
+		int addParticle(int particle, const vector<double> &strided_pos, vector<OctreeNode*> &node_map, vector<OctreeNode*> &node_list, NodePool<OctreeNode> &node_pool){
 			
 			// Get 3D coords for incoming particle
 			double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
@@ -160,7 +209,7 @@ class OctreeNode {
 				// empty region, this particle occupies it and it becomes a leaf node
 
 				// Put this octant node pointer into the map from particle_id -> node so we can trace back wtf is going on
-				node_map[particle] = this;
+				// node_map[particle] = this;
 
 				// Set CoM
 				centre_of_mass = {x, y, z};
@@ -177,12 +226,13 @@ class OctreeNode {
 					
 					// Create new node (shock, raw pointers! Look at my face, this is my caring face. See how much I care?)
 					// TODO: use a custom memory allocator for this to avoid shitloads of allocs/deallocs
-					OctreeNode *temp = new OctreeNode( octants[3*i + 0][0], octants[3*i + 0][1], octants[3*i + 1][0], octants[3*i + 1][1], octants[3*i + 2][0], octants[3*i + 2][1] );
 
+					OctreeNode *temp = new OctreeNode( octants[3*i + 0][0], octants[3*i + 0][1], octants[3*i + 1][0], octants[3*i + 1][1], octants[3*i + 2][0], octants[3*i + 2][1] );
+					// cout<<temp<<endl;
 					// Keep track of all our nodes mostly for book-keeping/debugging
-					node_list.push_back(temp);
+					// node_list.push_back(temp);
 					// Set parent of those new nodes to this current node for book keeping
-					temp->parent = this;
+					// temp->parent = this;
 
 					// Add new nodes to children list
 					children[i] = temp;
@@ -192,7 +242,7 @@ class OctreeNode {
 						// This was done this way because we moved to hash set to store particles so no notion of getting the 'first' particle
 						// However, there is a perf hit here because we are accessing strided_pos when already have x,y,z for that particle
 						if(children[i]->particleInNode(strided_pos[3*p_id],strided_pos[3*p_id+1],strided_pos[3*p_id+2])){
-							children[i]->addParticle(p_id, strided_pos, node_map, node_list);
+							children[i]->addParticle(p_id, strided_pos, node_map, node_list, node_pool);
 						}
 					}
 				}
@@ -210,7 +260,7 @@ class OctreeNode {
 				// Could this be refactored into the above loop doing the same check?
 				for(int i = 0; i<8;i++){
 					if(children[i]->particleInNode(x,y,z)){
-						children[i]->addParticle(particle, strided_pos, node_map, node_list);
+						children[i]->addParticle(particle, strided_pos, node_map, node_list, node_pool);
 					}
 				}
 
@@ -220,3 +270,4 @@ class OctreeNode {
 			return 1;
 		}
 };
+

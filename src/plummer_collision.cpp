@@ -23,13 +23,19 @@ using namespace std; // heresy
 // #include <GLFW/glfw3.h>
 
 
-void test_destructor(int n, int n_runs, Region &sim_region, auto strided_pos, auto node_map, auto node_list){
+void test_destructor(int n, int n_runs, Region &sim_region, auto strided_pos, auto &node_pool){
+
 	for(int x = 0;x<n_runs;x++){
-		// cout<<x<<endl;
+		vector<OctreeNode*> node_map(n);
+		vector<OctreeNode*> node_list = {};
+
+		cout<<"Mem test run: "<<x<<endl;
 		OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
 		for(int i = 0;i<n;i++){
-			root_node->addParticle(i, strided_pos, node_map, node_list);		
+			root_node->addParticle(i, strided_pos, node_map, node_list, node_pool);		
 		}
+		
+		// node_pool.reset();
 		delete root_node;
 	}
 }
@@ -84,14 +90,19 @@ int main ( int argc, char *argv[] ){
 		}
 	}
 	vector<current_dtype> strided_pos_BH(strided_pos), strided_vel_BH(strided_vel), strided_force_BH(strided_force);
+
+
+	NodePool<OctreeNode> node_pool(20000); // need a good way of knowing this compile time!
+	// exit(0);
 	// leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
-	// vector<OctreeNode*> node_map(n);
-	// vector<OctreeNode*> node_list;
+	vector<OctreeNode*> node_map(n);
+	vector<OctreeNode*> node_list;
 
-	// test_destructor(n, 10000,  sim_region,  strided_pos,  node_map,  node_list);
+	test_destructor(n, 10000,  sim_region,  strided_pos, node_pool);
+	node_pool.~NodePool();
 
-
-	leapfrog_init_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region) ;
+	// leapfrog_init_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, node_pool) ;
+	exit(0);
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	write_state(strided_pos, to_string(step)+"_pos");
 	while(t<tmax){
@@ -100,7 +111,7 @@ int main ( int argc, char *argv[] ){
 		// strided_vel_BH = strided_vel;
 		// strided_force_BH = strided_force;
 		// leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region, file_n) ;
-		leapfrog_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, file_n) ;
+		// leapfrog_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, file_n) ;
 		// cout<<t<<endl;
 		t += dt;
 		step++;
