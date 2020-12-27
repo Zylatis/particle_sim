@@ -23,10 +23,7 @@ class OctreeNode {
 		unordered_set<int> particle_ids;
 
 		// List of child nodes
-		// TODO: Think of whether or not it makes sense to allocate a size of 8 here
-		// I think it is either 8 or 0 so from a memory packing point of view setting to 8 is probably fine? Can test...
-		// Would need to think of how to deal with the push_back when adding
-		vector<OctreeNode*> children;
+		array<OctreeNode*, 8> children = {};
 
 		// Booking keeping of parent node
 		OctreeNode* parent;
@@ -48,8 +45,12 @@ class OctreeNode {
 
 		~OctreeNode(){
 			for(auto node : children){
-				delete node;
+				if(node){ //  With the empty array we might have nulls which will fail on delete here so need to check
+					node->parent = NULL;
+					delete node;
+				}
 			}
+			// children = {}; // seems to add memory overhead and probably isn't needed?
 
 		}
 
@@ -184,7 +185,7 @@ class OctreeNode {
 					temp->parent = this;
 
 					// Add new nodes to children list
-					children.push_back(temp);
+					children[i] = temp;
 
 					// As we go along making the octants, check which one it should be put into, and recursively add it to that octanct
 					for(auto p_id : particle_ids){

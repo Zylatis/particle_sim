@@ -1,4 +1,4 @@
-current_dtype region_size = 30000;
+current_dtype region_size = 3000;
 struct Region {
 	    current_dtype xmin = -region_size;
 	    current_dtype ymin = -region_size;

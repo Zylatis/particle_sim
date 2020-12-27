@@ -25,7 +25,7 @@ using namespace std; // heresy
 
 void test_destructor(int n, int n_runs, Region &sim_region, auto strided_pos, auto node_map, auto node_list){
 	for(int x = 0;x<n_runs;x++){
-		cout<<x<<endl;
+		// cout<<x<<endl;
 		OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
 		for(int i = 0;i<n;i++){
 			root_node->addParticle(i, strided_pos, node_map, node_list);		
@@ -84,34 +84,38 @@ int main ( int argc, char *argv[] ){
 		}
 	}
 	vector<current_dtype> strided_pos_BH(strided_pos), strided_vel_BH(strided_vel), strided_force_BH(strided_force);
+	// leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
+	// vector<OctreeNode*> node_map(n);
+	// vector<OctreeNode*> node_list;
 
-	leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
+	// test_destructor(n, 10000,  sim_region,  strided_pos,  node_map,  node_list);
+
+
 	leapfrog_init_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region) ;
-
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	write_state(strided_pos, to_string(step)+"_pos");
 	while(t<tmax){
-		cout<<t<<endl;
+		// cout<<t<<endl;
 		// strided_pos_BH = strided_pos;
 		// strided_vel_BH = strided_vel;
 		// strided_force_BH = strided_force;
-		leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region, file_n) ;
+		// leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region, file_n) ;
 		leapfrog_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, file_n) ;
-
+		// cout<<t<<endl;
 		t += dt;
 		step++;
 		if(step%10==0){
 			file_n++;
-			write_state(strided_pos, "data_direct/" + to_string(file_n)+"_pos");
-			write_state(strided_vel, "data_direct/" + to_string(file_n)+"_vel");
-			write_state(strided_force, "data_direct/" + to_string(file_n)+"_force");
+			// write_state(strided_pos, "data_direct/" + to_string(file_n)+"_pos");
+			// write_state(strided_vel, "data_direct/" + to_string(file_n)+"_vel");
+			// write_state(strided_force, "data_direct/" + to_string(file_n)+"_force");
 
 			write_state(strided_pos_BH, "data_bh/" + to_string(file_n)+"_pos");
 			write_state(strided_vel_BH, "data_bh/" + to_string(file_n)+"_vel");
 			write_state(strided_force_BH, "data_bh/" + to_string(file_n)+"_force");
 
 		}
-		// progress( t/tmax, totalE );
+		progress( t/tmax, totalE );
 	}
 
 	
