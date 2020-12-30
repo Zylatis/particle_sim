@@ -23,7 +23,7 @@ using namespace std; // heresy
 // #include <GLFW/glfw3.h>
 
 
-void test_destructor(int n, int n_runs, Region &sim_region, auto strided_pos, auto &node_pool){
+void test_destructor(int n, int n_runs, Region &sim_region, vector<current_dtype> &strided_pos, NodePool<OctreeNode> &node_pool){
 
 	for(int x = 0;x<n_runs;x++){
 		vector<OctreeNode*> node_map(n);
