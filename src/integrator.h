@@ -1,5 +1,6 @@
 #include <assert.h> 
 #include "barnes_hutt_objs.h"
+#include "bh_test.h"
 // #include "init_conditions.h"
 // #include <easy/profiler.h>
 

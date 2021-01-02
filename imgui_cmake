@@ -1,6 +1,0 @@
-src/include/imgui/imgui_impl_glfw.cpp
-	src/include/imgui/imgui_impl_opengl3.cpp
-	src/include/imgui/imgui.cpp
-	src/include/imgui/imgui_demo.cpp
-	src/include/imgui/imgui_draw.cpp
-	src/include/imgui/imgui_widgets.cpp

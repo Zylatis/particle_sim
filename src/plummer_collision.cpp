@@ -23,23 +23,71 @@ using namespace std; // heresy
 // #include <GLFW/glfw3.h>
 
 
-void test_destructor(int n, int n_runs, Region &sim_region, vector<current_dtype> &strided_pos, NodePool<OctreeNode> &node_pool){
+void test_destructor(int n, int n_runs, Region &sim_region, const vector<current_dtype> &strided_pos, NodePool<OctreeNode> &node_pool, vector<current_dtype> &strided_force){
 
 	for(int x = 0;x<n_runs;x++){
 		vector<OctreeNode*> node_map(n);
 		vector<OctreeNode*> node_list = {};
+		fill(strided_force.begin(), strided_force.end(),0.);
+
 
 		cout<<"Mem test run: "<<x<<endl;
-		OctreeNode* root_node = new OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
+		cout<<node_pool.node_pool.size()<<endl;
+		OctreeNode* root_node = new (node_pool.get()) OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
+		cout<< "root node: "<<root_node<<endl;
 		for(int i = 0;i<n;i++){
+			//cout<<i<<endl;
 			root_node->addParticle(i, strided_pos, node_map, node_list, node_pool);		
 		}
-		
-		// node_pool.reset();
-		delete root_node;
+		for(auto node: node_map){
+			cout<<setprecision(13)<<node<<"\t"<<(node->centre_of_mass[0])<<endl;			
+		}
+		 for(int i = 0; i<n;++i){
+		 	root_node->calcForce(i, strided_pos, strided_force);	
+		 	cout<<setprecision(13)<<strided_force[i]<<endl;
+		 }
+		cout<<"========="<<endl;
+		cout<<"X"<<endl;
+		node_pool.reset();
+		//delete root_node;
 	}
 }
 
+void test_destructor2(int n, int n_runs, Region &sim_region, const vector<current_dtype> &strided_pos, NodePool<OctreeNode2> &node_pool, vector<current_dtype> &strided_force){
+
+	for(int x = 0;x<n_runs;x++){
+		fill(strided_force.begin(), strided_force.end(),0.);
+
+		vector<OctreeNode2*> node_map(n);
+		vector<OctreeNode2*> node_list = {};
+
+		cout<<"Mem test run: "<<x<<endl;
+		cout<<node_pool.node_pool.size()<<endl;
+		OctreeNode2* root_node = new (node_pool.get()) OctreeNode2(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
+		cout<< "root node: "<<root_node<<endl;
+		for(int i = 0;i<n;i++){
+			//cout<<i<<endl;
+			root_node->addParticle(i, strided_pos, node_map, node_list, node_pool);	
+		}
+		
+		for(auto node: node_map){
+			cout<<setprecision(13)<<node<<"\t"<<(node->centre_of_mass[0])<<endl;			
+		}
+
+		cout<<endl;
+	//	for(auto node : node_list){
+//			cout<<node<<"\t"<<node->leaf_particle_id<<"\t"<<node->is_leaf<<endl;
+//		}
+		for(int i = 0; i<n;++i){
+			root_node->calcForce(i, strided_pos, strided_force);	
+		 	cout<<setprecision(13)<<strided_force[i]<<endl;
+		 }
+		cout<<"========="<<endl;
+		cout<<"X"<<endl;
+		node_pool.reset();
+		//delete root_node;
+	}
+}
 
 // Main simulation
 int main ( int argc, char *argv[] ){
@@ -92,14 +140,17 @@ int main ( int argc, char *argv[] ){
 	vector<current_dtype> strided_pos_BH(strided_pos), strided_vel_BH(strided_vel), strided_force_BH(strided_force);
 
 
-	NodePool<OctreeNode> node_pool(20000); // need a good way of knowing this compile time!
+	NodePool<OctreeNode> node_pool(2000); // need a good way of knowing this compile time!
+	NodePool<OctreeNode2> node_pool2(2000); // need a good way of knowing this compile time!
 	// exit(0);
 	// leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
 	vector<OctreeNode*> node_map(n);
 	vector<OctreeNode*> node_list;
 
-	test_destructor(n, 10000,  sim_region,  strided_pos, node_pool);
-	node_pool.~NodePool();
+	test_destructor(n, 1,  sim_region,  strided_pos, node_pool, strided_force);
+	test_destructor2(n, 1,  sim_region,  strided_pos, node_pool2, strided_force);
+
+//	node_pool.~NodePool();
 
 	// leapfrog_init_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, node_pool) ;
 	exit(0);
