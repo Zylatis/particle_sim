@@ -1,3 +1,6 @@
+#include <iostream>                                                             
+#include <fstream>    
+
 #if defined(_WIN32)
     #define PLATFORM_NAME "windows" // Windows
     #include <Windows.h>
@@ -29,15 +32,12 @@
     }
 #endif
 
-#include <omp.h> //for parallelization
-#include <iostream>                                                             
-#include <fstream>    
 #include <vector>
 #include <math.h>
 #include <iomanip>
 #include <random>
 #include <array>
-
+#include <omp.h> //for parallelization
 
 current_dtype mass, G(1.);
 current_dtype eps = 0.01;
