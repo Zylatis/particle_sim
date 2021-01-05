@@ -1,9 +1,6 @@
 #ifndef barnes_hutt_objs
 #define barnes_hutt_objs
 
-#include <unordered_set>
-
-
 template <typename T> 
 class NodePool {
 	private:
@@ -51,7 +48,6 @@ void print_container(T &v){
 
 	cout<<endl;
 }
-#include <unordered_set>
 
 class OctreeNode {
 	private:
