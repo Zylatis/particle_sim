@@ -10,7 +10,7 @@ using namespace std; // heresy
 #include <sstream>
 #include <unordered_map>
 #include "io.h"
-#include "math_objs.h"
+// #include "math_objs.h"
 #include "init_conditions.h"
 #include "integrator.h"
 #include <chrono> 
@@ -32,62 +32,27 @@ void test_destructor(int n, int n_runs, Region &sim_region, const vector<current
 
 
 		cout<<"Mem test run: "<<x<<endl;
-		cout<<node_pool.node_pool.size()<<endl;
+		// cout<<node_pool.node_pool.size()<<endl;
 		OctreeNode* root_node = new (node_pool.get()) OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
 		cout<< "root node: "<<root_node<<endl;
 		for(int i = 0;i<n;i++){
 			//cout<<i<<endl;
 			root_node->addParticle(i, strided_pos, node_map, node_list, node_pool);		
 		}
-		for(auto node: node_map){
-			cout<<setprecision(13)<<node<<"\t"<<(node->centre_of_mass[0])<<endl;			
-		}
-		 for(int i = 0; i<n;++i){
-		 	root_node->calcForce(i, strided_pos, strided_force);	
-		 	cout<<setprecision(13)<<strided_force[i]<<endl;
-		 }
-		cout<<"========="<<endl;
-		cout<<"X"<<endl;
+		// for(auto node: node_map){
+			// cout<<setprecision(13)<<node<<"\t"<<(node->centre_of_mass[0])<<endl;			
+		// }
+		//  for(int i = 0; i<n;++i){
+		 	// root_node->calcForce(i, strided_pos, strided_force);	
+		 	// cout<<setprecision(13)<<strided_force[i]<<endl;
+		//  }
+		// cout<<"========="<<endl;
+		// cout<<"X"<<endl;
 		node_pool.reset();
 		//delete root_node;
 	}
 }
 
-void test_destructor2(int n, int n_runs, Region &sim_region, const vector<current_dtype> &strided_pos, NodePool<OctreeNode2> &node_pool, vector<current_dtype> &strided_force){
-
-	for(int x = 0;x<n_runs;x++){
-		fill(strided_force.begin(), strided_force.end(),0.);
-
-		vector<OctreeNode2*> node_map(n);
-		vector<OctreeNode2*> node_list = {};
-
-		cout<<"Mem test run: "<<x<<endl;
-		cout<<node_pool.node_pool.size()<<endl;
-		OctreeNode2* root_node = new (node_pool.get()) OctreeNode2(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
-		cout<< "root node: "<<root_node<<endl;
-		for(int i = 0;i<n;i++){
-			//cout<<i<<endl;
-			root_node->addParticle(i, strided_pos, node_map, node_list, node_pool);	
-		}
-		
-		for(auto node: node_map){
-			cout<<setprecision(13)<<node<<"\t"<<(node->centre_of_mass[0])<<endl;			
-		}
-
-		cout<<endl;
-	//	for(auto node : node_list){
-//			cout<<node<<"\t"<<node->leaf_particle_id<<"\t"<<node->is_leaf<<endl;
-//		}
-		for(int i = 0; i<n;++i){
-			root_node->calcForce(i, strided_pos, strided_force);	
-		 	cout<<setprecision(13)<<strided_force[i]<<endl;
-		 }
-		cout<<"========="<<endl;
-		cout<<"X"<<endl;
-		node_pool.reset();
-		//delete root_node;
-	}
-}
 
 // Main simulation
 int main ( int argc, char *argv[] ){
@@ -95,6 +60,7 @@ int main ( int argc, char *argv[] ){
 	// EASY_FUNCTION(profiler::colors::Magenta);
 	double wt;
 	Region sim_region;
+	string out_folder;
 
 	auto seed = chrono::system_clock::now().time_since_epoch().count();
 	// seed = 1608785537296692664;
@@ -115,7 +81,8 @@ int main ( int argc, char *argv[] ){
 	int n = config.n_particles; 
 	mass = 0.001;
 	int step(0), file_n(0);
-	current_dtype dt(0.1), t(0.), totalE(0.), tmax(config.tmax);;
+	current_dtype dt(0.1), t(0.), totalE(0.), tmax(config.tmax);
+	Method method = config.method;
 
 	vector<current_dtype> strided_pos(3*n,0.), strided_vel(3*n,0.), strided_force(3*n,0.);
 
@@ -137,44 +104,47 @@ int main ( int argc, char *argv[] ){
 			strided_vel[3*i+k] = temp[1][k];
 		}
 	}
-	vector<current_dtype> strided_pos_BH(strided_pos), strided_vel_BH(strided_vel), strided_force_BH(strided_force);
-
-
-	NodePool<OctreeNode> node_pool(2000); // need a good way of knowing this compile time!
-	NodePool<OctreeNode2> node_pool2(2000); // need a good way of knowing this compile time!
-	// exit(0);
-	// leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n) ;
+	NodePool<OctreeNode> node_pool(10000000); // need a good way of knowing this compile time!
 	vector<OctreeNode*> node_map(n);
 	vector<OctreeNode*> node_list;
+	cout<<"=========="<<endl;
 
-	test_destructor(n, 1,  sim_region,  strided_pos, node_pool, strided_force);
-	test_destructor2(n, 1,  sim_region,  strided_pos, node_pool2, strided_force);
-
-//	node_pool.~NodePool();
-
-	// leapfrog_init_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, node_pool) ;
-	exit(0);
+	// exit(0);	
+	// test_destructor(n, 1000,  sim_region,  strided_pos, node_pool, strided_force);
+	switch(method) {
+		case direct:
+			leapfrog_init_step_strided(strided_pos, strided_vel, strided_force, dt, n);
+			break;
+		case barnes_hutt:
+			leapfrog_init_step_strided_BH(	strided_pos, strided_vel, strided_force, dt, n, sim_region, node_pool);
+			break;
+		default:
+			cout<<"Switch error"<<endl;
+	}
 	cout<<"Initial totalE: " + to_string(totalE)<<endl;
 	write_state(strided_pos, to_string(step)+"_pos");
 	while(t<tmax){
-		// cout<<t<<endl;
-		// strided_pos_BH = strided_pos;
-		// strided_vel_BH = strided_vel;
-		// strided_force_BH = strided_force;
-		// leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region, file_n) ;
-		// leapfrog_step_strided_BH(strided_pos_BH, strided_vel_BH, strided_force_BH, dt, n, sim_region, file_n) ;
-		// cout<<t<<endl;
+
+		switch(method) {
+			case direct:
+				leapfrog_step_strided(strided_pos, strided_vel, strided_force, dt, n, sim_region, file_n);
+				out_folder = "data_direct/";
+				break;
+			case barnes_hutt:
+				leapfrog_step_strided_BH(strided_pos, strided_vel, strided_force, dt, n, sim_region, file_n, node_pool);
+				out_folder = "data_bh/";
+				break;
+			default:
+				cout<<"Switch error"<<endl;
+		}
+
 		t += dt;
 		step++;
 		if(step%10==0){
 			file_n++;
-			// write_state(strided_pos, "data_direct/" + to_string(file_n)+"_pos");
-			// write_state(strided_vel, "data_direct/" + to_string(file_n)+"_vel");
-			// write_state(strided_force, "data_direct/" + to_string(file_n)+"_force");
-
-			write_state(strided_pos_BH, "data_bh/" + to_string(file_n)+"_pos");
-			write_state(strided_vel_BH, "data_bh/" + to_string(file_n)+"_vel");
-			write_state(strided_force_BH, "data_bh/" + to_string(file_n)+"_force");
+			write_state(strided_pos, out_folder + to_string(file_n)+"_pos");
+			write_state(strided_vel, out_folder + to_string(file_n)+"_vel");
+			write_state(strided_force, out_folder + to_string(file_n)+"_force");
 
 		}
 		progress( t/tmax, totalE );

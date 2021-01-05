@@ -1,3 +1,6 @@
+#ifndef init_conditions
+#define init_conditions
+
 current_dtype region_size = 3000;
 struct Region {
 	    current_dtype xmin = -region_size;
@@ -54,3 +57,5 @@ vector<vector<current_dtype> > init(  default_random_engine &rands, const vector
 
 	return data;
 }
+
+#endif

@@ -42,3 +42,7 @@
 current_dtype mass, G(1.);
 current_dtype eps = 0.01;
 
+enum Method {
+    direct = 1,
+    barnes_hutt = 2
+};

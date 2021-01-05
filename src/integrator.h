@@ -1,6 +1,9 @@
+#ifndef integrator_
+#define integrator
+
 #include <assert.h> 
 #include "barnes_hutt_objs.h"
-#include "bh_test.h"
+// #include "bh_test.h"
 // #include "init_conditions.h"
 // #include <easy/profiler.h>
 
@@ -70,8 +73,6 @@ void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< 
 		// TODO: this might be really dumb maybe we should make use of the hashmap of node<->particle locs to do this?
 		root_node->calcForce(i, strided_pos, strided_force);	
 	}
-
-	exit(0);
 	
 	node_pool.reset();
 	// delete root_node;
@@ -119,11 +120,10 @@ void leapfrog_init_step_strided_BH(
 		current_dtype dt,
 		int n,
 		const Region &sim_region,
-		 NodePool<OctreeNode> &node_pool
+		NodePool<OctreeNode> &node_pool
 	){
 
 	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region, node_pool);
-	// cout<<"X"<<endl;
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
@@ -150,6 +150,7 @@ void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< cur
 	}
 
 	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region, node_pool);
+	
 	// cout<<"update vel"<<endl;
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
@@ -160,3 +161,4 @@ void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< cur
 		}
 	}
 }
+#endif

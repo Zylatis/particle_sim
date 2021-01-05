@@ -1,3 +1,5 @@
+#ifndef io
+#define io
 #include <string.h>
 
 // void write_state( vector< vector< current_dtype>  >  &array, string file_name){
@@ -17,6 +19,7 @@ struct Config {
     int n_particles;
     int n_threads;
     float tmax;
+    Method method;
 };
 
 const Config read_config(const char* filepath){
@@ -52,8 +55,12 @@ const Config read_config(const char* filepath){
                 cout<<prev_line<<endl;
                 cout<<str<<endl;
                 config_data.tmax =  (float) atoi(str);
+            
+            } else if(!strcmp(prev_line,"# method")){
+                cout<<prev_line<<endl;
+                cout<<str<<endl;
+                config_data.method =  (Method) atoi(str);
             }
-
         }
     }
 
@@ -94,3 +101,4 @@ void progress(double perc, current_dtype totalE){
 
 
 
+#endif
