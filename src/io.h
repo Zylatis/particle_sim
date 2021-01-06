@@ -1,10 +1,12 @@
 #pragma once
+// #define GET_VARIABLE_NAME(Variable) (#Variable)
 #include <string.h>
 
 struct Config {
     int n_particles;
     int n_threads;
-    float tmax;
+    current_dtype tmax;
+    current_dtype dt;
     Method method;
 };
 
@@ -22,30 +24,28 @@ const Config read_config(const char* filepath){
     char str[255];
     char prev_line[255];
 
+    // TODO: refactor into switch/loop
     while(in.getline(str,255))
     {
         if(str[0] == '#'){
             strcpy(prev_line, str);
         } else {
+            cout<<prev_line<<endl;
+            cout<<str<<endl;
              if(!strcmp(prev_line,"# n_particles")){
-                cout<<prev_line<<endl;
-                cout<<str<<endl;
                 config_data.n_particles =  atoi(str);
              
              } else if(!strcmp(prev_line,"# n_threads")){
-                cout<<prev_line<<endl;
-                cout<<str<<endl;
                 config_data.n_threads =  atoi(str);
    
             } else if(!strcmp(prev_line,"# tmax")){
-                cout<<prev_line<<endl;
-                cout<<str<<endl;
-                config_data.tmax =  (float) atoi(str);
+                config_data.tmax = (current_dtype) atoi(str);
             
             } else if(!strcmp(prev_line,"# method")){
-                cout<<prev_line<<endl;
-                cout<<str<<endl;
-                config_data.method =  (Method) atoi(str);
+                config_data.method = (Method) atoi(str);
+            
+            } else if(!strcmp(prev_line,"# dt")){
+                config_data.dt = (current_dtype) atof(str);
             }
         }
     }
@@ -85,7 +85,7 @@ void write_state( vector< current_dtype >  &array, string file_name){
     o.close();
 }
 
-void progress(double perc, current_dtype totalE){
+void progress(double perc){
     //https://stackoverflow.com/questions/44987147/progress-bar-c
     int bar_l = 30;
     int pos = perc * bar_l;

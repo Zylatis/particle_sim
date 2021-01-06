@@ -20,7 +20,7 @@ double roundoff(double value, double prec)
 
 
 // Calc force
-void calc_force_strided(  const vector<current_dtype> &strided_pos_vec, vector<current_dtype > &strided_force, int n ){
+void calc_force_strided( const vector<current_dtype> &strided_pos_vec, vector<current_dtype > &strided_force, int n ){
 	// EASY_FUNCTION();
 
 	fill(strided_force.begin(), strided_force.end(),0.);
@@ -147,6 +147,33 @@ void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< cur
 		for(int k = 0; k<3;k++){
 			strided_vel[3*i+k] += strided_force[3*i+k]*dt;
 			strided_vel[3*i+k] = roundoff(strided_vel[3*i+k],10);
+
+		}
+	}
+}
+
+// Debug purposes
+void leapfrog_step_strided_BH( Universe &universe, current_dtype dt, Region &sim_region, int file_n, NodePool<OctreeNode> &node_pool){
+
+	#pragma omp parallel for
+	for(int i = 0; i<universe.n_particles; i++){
+		for(int k = 0; k<3;k++){
+			universe.strided_pos[3*i+k] += universe.strided_vel[3*i+k]*dt;
+		}
+		if(!particleInRegion2(universe.strided_pos[3*i],universe.strided_pos[3*i+1],universe.strided_pos[3*i+2], sim_region)){
+				cout<<"ERROR"<<endl;
+				cout<<i<<endl;
+				exit(0);
+			}
+	}
+
+	barnes_hutt_force_step(universe.strided_pos, universe.strided_force, universe.n_particles, sim_region, node_pool);
+	
+	#pragma omp parallel for
+	for(int i = 0; i<universe.n_particles; i++){
+		for(int k = 0; k<3;k++){
+			universe.strided_vel[3*i+k] += universe.strided_force[3*i+k]*dt;
+			universe.strided_vel[3*i+k] = roundoff(universe.strided_vel[3*i+k],10);
 
 		}
 	}

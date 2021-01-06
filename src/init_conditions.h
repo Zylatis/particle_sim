@@ -1,25 +1,26 @@
 #pragma once
 
-current_dtype region_size = 3000;
 struct Region {
-	    current_dtype xmin = -region_size;
-	    current_dtype ymin = -region_size;
-	    current_dtype zmin = -region_size;
-
-	    current_dtype xmax = region_size;
-	    current_dtype ymax = region_size;
-	    current_dtype zmax = region_size;
+	    current_dtype xmin, xmax, ymin, ymax, zmin, zmax; // Doesn't really gel well with variable dim but meh
 	};
 
 struct Universe {
 	vector<current_dtype> strided_pos;
-	vector<current_dtype> strided_vel;
 	vector<current_dtype> strided_force;
-	current_dtype mass; // TODO: promote to vector of particle masses generated from some distribution
+	vector<current_dtype> strided_vel;
+	current_dtype mass = 0.001; // TODO: promote to vector of particle masses generated from some distribution
 	int n_particles;
-	int dim;
-	int random_seed = 1;
 };
+
+void init_universe(Universe &universe, int n_particles, int dim){
+	// Tempted to fold into class but classes with just one function are weird...
+	// However: we might want to generate the masses from a distribution. Prob should be in init...
+	universe.n_particles = n_particles;
+	auto n = dim*n_particles;
+	universe.strided_pos.resize(n);
+	universe.strided_vel.resize(n);
+	universe.strided_force.resize(n);
+}
 
 bool particleInRegion(double x, double y, double z, const Region &region){ // Should really call this from Barnes Hutt routine too 
 	return (x<= region.xmax && x> region.xmin && y <= region.ymax && y > region.ymin && z <= region.zmax && z> region.zmin);

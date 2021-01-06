@@ -46,10 +46,13 @@ void print_container(T &v){
 	cout<<endl;
 }
 
+// TODO: template dimension
 class OctreeNode {
 	private:
 		// Boundary of octant
-		double xmin, xmax, ymin, ymax, zmin, zmax, s; // Should really store in an array
+		// double xmin, xmax, ymin, ymax, zmin, zmax, s; // Should really store in an array
+		double s;
+		array<current_dtype> boundaries(8,0.); 
 		double theta = 0.0; // TODO: move to config or solver type init, or to calc_force 
 	public:	
 		// CoM for particles in octant
@@ -69,31 +72,16 @@ class OctreeNode {
 		void reset(){
 			children = {};
 			centre_of_mass = {};
-			xmin = 0;
-			xmax = 0;
-
-			ymin = 0;
-			ymax = 0;
-
-			zmin = 0;
-			zmax = 0;
+			fill(boundaries.begin(), boundaries.end(),0.);
 
 			s = 0;
 		}
 
 		// Constructor
 		// Given that the region is always square we could refactor this to use 's' instead
-		OctreeNode(double i_xmin, double i_xmax, double i_ymin, double i_ymax, double i_zmin, double i_zmax){
-			xmin = i_xmin;
-			xmax = i_xmax;
-
-			ymin = i_ymin;
-			ymax = i_ymax;
-
-			zmin = i_zmin;
-			zmax = i_zmax;
-
-			s = xmax - xmin;
+		OctreeNode(const array<current_dtype> &boundaries){
+			this->boundaries = boundaries;
+			s = boundaries[1] - boundaries[1];
 		};
 
 		~OctreeNode(){
@@ -107,12 +95,12 @@ class OctreeNode {
 
 		}
 
-		void printBoundaries(){
-			cout<<xmin<<"\t"<<xmax<<endl;
-			cout<<ymin<<"\t"<<ymax<<endl;
-			cout<<zmin<<"\t"<<zmax<<endl;
-			cout<<endl;
-		}
+		// void printBoundaries(){
+		// 	cout<<xmin<<"\t"<<xmax<<endl;
+		// 	cout<<ymin<<"\t"<<ymax<<endl;
+		// 	cout<<zmin<<"\t"<<zmax<<endl;
+		// 	cout<<endl;
+		// }
 
 		// Subdivide a given 3D space into octants
 		vector<vector<double>> calcOctants(){
@@ -121,6 +109,7 @@ class OctreeNode {
 			double dz = s/2.;
 			
 			vector<vector<double> > children_boxes = {
+				// TODO make flat list
 					{xmin,xmin + dx}, {ymin, ymin + dy}, {zmin, zmin + dz},
 					{xmin + dx,xmax}, {ymin, ymin + dy}, {zmin, zmin + dz},
 					{xmin,xmin + dx}, {ymin + dy, ymax}, {zmin, zmin + dz},
