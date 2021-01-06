@@ -1,5 +1,6 @@
 #include <iostream>                                                             
 #include <fstream>    
+#pragma once
 
 #if defined(_WIN32)
     #define PLATFORM_NAME "windows" // Windows

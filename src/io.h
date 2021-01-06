@@ -1,19 +1,5 @@
-#ifndef io
-#define io
+#pragma once
 #include <string.h>
-
-// void write_state( vector< vector< current_dtype>  >  &array, string file_name){
-
-// 	ofstream o;
-// 	string outputFolder = "output/data/";
-// 	int size = array.size();
-// 	string file = outputFolder+file_name+".dat";
-// 	o.open(file.c_str(), ios::out);
-// 	for(int i = 0; i<size; i++){
-// 		o<< array[i][0]<<"\t"<<array[i][1]<<"\t"<<array[i][2]<<endl;
-// 	}
-// 	o.close();
-// }
 
 struct Config {
     int n_particles;
@@ -68,6 +54,24 @@ const Config read_config(const char* filepath){
 
 }
 
+void write_flat_table(vector< current_dtype> &table, string file_name, int dim, int save_precision = 13){
+    if(dim > 3 || dim <=1){
+        cout << "Error: invalid dimension given to write_flat_table (" << dim << ")" << endl;
+    }
+    ofstream stream;
+    int size = table.size()/dim;
+    stream.open(file_name.c_str(), ios::out);
+    for(int i = 0; i < size; i++){
+        stream<<setprecision(save_precision);
+        for(int k = 0; k<dim; k++){
+            stream << table[dim*i+k]<<"\t";
+        }
+        stream << endl;
+    }
+    stream.close();
+
+}
+
 void write_state( vector< current_dtype >  &array, string file_name){
 
     ofstream o;
@@ -98,7 +102,3 @@ void progress(double perc, current_dtype totalE){
     cout << "] " + to_string((int) round(100*perc)) + "\r";
     // cout << "] " + to_string((int) round(100*perc)) + "%, totalE:" + to_string(totalE) +"\r";
 }
-
-
-
-#endif

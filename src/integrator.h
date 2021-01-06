@@ -1,6 +1,4 @@
-#ifndef integrator_
-#define integrator
-
+#pragma once
 #include <assert.h> 
 #include "barnes_hutt_objs.h"
 // #include "bh_test.h"
@@ -20,10 +18,6 @@ double roundoff(double value, double prec)
   return round(value * pow_10) / pow_10;
 }
 
-// void get_diffs(vector<vector<double> > &vec1, vector<vector<double> > &vec2){
-
-
-// }
 
 // Calc force
 void calc_force_strided(  const vector<current_dtype> &strided_pos_vec, vector<current_dtype > &strided_force, int n ){
@@ -58,14 +52,12 @@ void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< 
 
 	vector<OctreeNode*> node_map(n);
 	vector<OctreeNode*> node_list;
-	// cout<<node_pool.get()<<endl;
-
+	
 	OctreeNode* root_node = new (node_pool.get()) OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
 
 	node_list.push_back(root_node);
 	for(int i = 0;i<n;i++){
 		root_node->addParticle(i, strided_pos, node_map, node_list, node_pool);		
-
 	}
 
 	#pragma omp parallel for 
@@ -75,7 +67,6 @@ void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< 
 	}
 	
 	node_pool.reset();
-	// delete root_node;
 }
 
 void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n){
@@ -151,7 +142,6 @@ void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< cur
 
 	barnes_hutt_force_step(strided_pos, strided_force, n, sim_region, node_pool);
 	
-	// cout<<"update vel"<<endl;
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
 		for(int k = 0; k<3;k++){
@@ -161,4 +151,3 @@ void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< cur
 		}
 	}
 }
-#endif

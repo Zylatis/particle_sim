@@ -1,14 +1,14 @@
-#ifndef barnes_hutt_objs
-#define barnes_hutt_objs
+#pragma once
 
 template <typename T> 
 class NodePool {
+	// Very hacky memory pool for octree nodes
 	private:
+		unsigned int loc = 0;
+		vector<T> node_pool; // better way to have a buffer? I don't understand the mem footprint of this, better to do as plain array?
 
 	public:
-		unsigned int loc = 0;
 
-		vector<T> node_pool; // better way to have a buffer?
 		NodePool(unsigned long int n){
 			node_pool.reserve(n);
 		};
@@ -18,7 +18,6 @@ class NodePool {
 		}
 
 		T* get(){
-
 			loc++;
 			return &node_pool[loc-1];
 		}
@@ -31,8 +30,6 @@ class NodePool {
 		}
 
 		double pool_mem_size(){
-			// cout<<sizeof(T)<<endl;
-			// cout<<node_pool.capacity()<<endl;
 			return (sizeof(node_pool) + (sizeof(T) * node_pool.capacity()))/ 1024 / 1024;
 
 		}
@@ -52,14 +49,13 @@ void print_container(T &v){
 class OctreeNode {
 	private:
 		// Boundary of octant
-		double xmin, xmax, ymin, ymax, zmin, zmax, s;
-		double theta = 0.5;
+		double xmin, xmax, ymin, ymax, zmin, zmax, s; // Should really store in an array
+		double theta = 0.0; // TODO: move to config or solver type init, or to calc_force 
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
 
 		// Ids (from 0 to N) of particles in octant
-		//unordered_set<int> particle_ids; // to be replaced!
 		bool is_leaf = false;
 		int n_particles = 0;
 		int leaf_particle_id;
@@ -71,11 +67,8 @@ class OctreeNode {
 		OctreeNode* parent;
 
 		void reset(){
-			// cout<<"X"<<endl;
-			//particle_ids.clear();
 			children = {};
 			centre_of_mass = {};
-			parent = NULL;
 			xmin = 0;
 			xmax = 0;
 
@@ -115,7 +108,6 @@ class OctreeNode {
 		}
 
 		void printBoundaries(){
-			//cout<<this<<"\t"<<particle_ids.size()<<endl;
 			cout<<xmin<<"\t"<<xmax<<endl;
 			cout<<ymin<<"\t"<<ymax<<endl;
 			cout<<zmin<<"\t"<<zmax<<endl;
@@ -150,20 +142,21 @@ class OctreeNode {
 
 		void calcForce(int particle, const vector<double> &strided_pos, vector<double> &strided_force){
 			array<double,3> drvec = {0.,0.,0.};
+			int x0 = 3*particle;
 			double rmag;
-            if(is_leaf){
+            // if(is_leaf){
              //   cout<<"leaf particle " << leaf_particle_id << " incoming particle " << particle << endl;
-            }     
+            // }     
 			// If current node is a leaf node, and particle in node is not the target particle, calculate two body force and add
 			if(is_leaf && (leaf_particle_id != particle)){
-				double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
+				double x(strided_pos[x0]), y(strided_pos[x0+1]), z(strided_pos[x0+2]);
 
 				// Get the particle ID of particle in this leaf node
 				int p2 = leaf_particle_id;
 				
 				// Calc dr
 				for(int k = 0; k<3;k++){
-					drvec[k] = strided_pos[3*p2+k] - strided_pos[3*particle+k];				
+					drvec[k] = strided_pos[3*p2+k] - strided_pos[x0+k];				
 				}
 
 				// Calc |dr|
@@ -173,7 +166,7 @@ class OctreeNode {
 				for(int k = 0; k<3;k++){
 					double val = G*mass*drvec[k]/(eps+rmag*rmag*rmag);
 
-					strided_force[3*particle+k] += val;
+					strided_force[x0+k] += val;
 				}
 
                 //cout<<"New BH target particke"<< particle << " leaf node particle " << leaf_particle_id << " rmag " << rmag<<endl; 
@@ -182,7 +175,7 @@ class OctreeNode {
 
 				// else, calc s/d
 				for(int k = 0; k<3;k++){
-					drvec[k] = centre_of_mass[k] - strided_pos[3*particle+k];
+					drvec[k] = centre_of_mass[k] - strided_pos[x0+k];
 				}
 
 				rmag = sqrt(drvec[0]*drvec[0] + drvec[1]*drvec[1] + drvec[2]*drvec[2]);
@@ -194,7 +187,7 @@ class OctreeNode {
 					// Consider this node as a single body, compute force as force from particle of mass total mass at CoM
 					for(int k = 0; k<3;k++){
 						double val = G*mass*n_particles*drvec[k]/(eps+rmag*rmag*rmag);
-						strided_force[3*particle+k] += val;
+						strided_force[x0+k] += val;
 					}
 
 				} else {
@@ -211,13 +204,9 @@ class OctreeNode {
 		int addParticle(int particle, const vector<double> &strided_pos, vector<OctreeNode*> &node_map, vector<OctreeNode*> &node_list, NodePool<OctreeNode> &node_pool){
 			
 			// Get 3D coords for incoming particle
-			double x(strided_pos[3*particle]), y(strided_pos[3*particle+1]), z(strided_pos[3*particle+2]);
+			int x0 = 3*particle;
+			double x(strided_pos[x0]), y(strided_pos[x0+1]), z(strided_pos[x0+2]);
 			n_particles +=1;
-			// Add this particle to the list for this octant
-			//int nparticles = particle_ids.size();
-
-			// We add this particle to the octant *after* getting the count just so the if statements below make sense
-			//particle_ids.insert(particle);
 			
 			// If currently chosen octant is empty (before we added particle), this becomes a leaf node (for now) for this particle
 			if(n_particles == 1){
@@ -235,8 +224,8 @@ class OctreeNode {
 				return 0;
 
 			} else if(n_particles == 2){
-               is_leaf = false;
 				// Region currently a leaf node but no more! we add a particle to it and subdivide the region into empty octants, adding particles into relevant ones
+                is_leaf = false;
 				
 				// Get octant info and loop over regions creating a new node for each one and seeing which of the (now two) particles we have goes in which one
 				auto octants = calcOctants();
@@ -245,7 +234,8 @@ class OctreeNode {
 					// Create new node (shock, raw pointers! Look at my face, this is my caring face. See how much I care?)
 					// TODO: use a custom memory allocator for this to avoid shitloads of allocs/deallocs
 					auto pool_mem = node_pool.get();
-					OctreeNode *temp = new (pool_mem) OctreeNode( octants[3*i + 0][0], octants[3*i + 0][1], octants[3*i + 1][0], octants[3*i + 1][1], octants[3*i + 2][0], octants[3*i + 2][1] );
+					int i0 = 3*i;
+					OctreeNode *temp = new (pool_mem) OctreeNode( octants[i0 + 0][0], octants[i0 + 0][1], octants[i0 + 1][0], octants[i0 + 1][1], octants[i0 + 2][0], octants[i0 + 2][1] );
 
 					// Keep track of all our nodes mostly for book-keeping/debugging
 					node_list.push_back(temp);
@@ -262,24 +252,14 @@ class OctreeNode {
 						children[i]->addParticle(leaf_particle_id, strided_pos, node_map, node_list, node_pool);
 					}
 
-					if(children[i]->particleInNode(strided_pos[3*particle],strided_pos[3*particle+1],strided_pos[3*particle+2])){
+					if(children[i]->particleInNode(strided_pos[x0], strided_pos[x0+1], strided_pos[x0+2])){
 						children[i]->addParticle(particle, strided_pos, node_map, node_list, node_pool);
 					}
-                   
-
-					// As we go along making the octants, check which one it should be put into, and recursively add it to that octanct
-					// for(auto p_id : particle_ids){
-					// 	// This was done this way because we moved to hash set to store particles so no notion of getting the 'first' particle
-					// 	// However, there is a perf hit here because we are accessing strided_pos when already have x,y,z for that particle
-					// 	if(children[i]->particleInNode(strided_pos[3*p_id],strided_pos[3*p_id+1],strided_pos[3*p_id+2])){
-					// 		children[i]->addParticle(p_id, strided_pos, node_map, node_list, node_pool);
-					// 	}
-					// }
 				}
 
 				// assuming mass = 1 for now, update COM with new particle
 				for(int k = 0; k<3; k++){
-					centre_of_mass[k] += strided_pos[3*particle+k];
+					centre_of_mass[k] += strided_pos[x0+k];
 					centre_of_mass[k] /= 2.;
 				}
                 leaf_particle_id = NULL;
@@ -305,5 +285,3 @@ class OctreeNode {
 			return 1;
 		}
 };
-
-#endif

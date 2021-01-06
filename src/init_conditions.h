@@ -1,5 +1,4 @@
-#ifndef init_conditions
-#define init_conditions
+#pragma once
 
 current_dtype region_size = 3000;
 struct Region {
@@ -12,10 +11,19 @@ struct Region {
 	    current_dtype zmax = region_size;
 	};
 
+struct Universe {
+	vector<current_dtype> strided_pos;
+	vector<current_dtype> strided_vel;
+	vector<current_dtype> strided_force;
+	current_dtype mass; // TODO: promote to vector of particle masses generated from some distribution
+	int n_particles;
+	int dim;
+	int random_seed = 1;
+};
+
 bool particleInRegion(double x, double y, double z, const Region &region){ // Should really call this from Barnes Hutt routine too 
 	return (x<= region.xmax && x> region.xmin && y <= region.ymax && y > region.ymin && z <= region.zmax && z> region.zmin);
 }
-
 
 vector<vector<current_dtype> > init(  default_random_engine &rands, const vector<current_dtype> &centre, const vector<current_dtype> &centre_V, const Region &sim_region ){
 	
@@ -57,5 +65,3 @@ vector<vector<current_dtype> > init(  default_random_engine &rands, const vector
 
 	return data;
 }
-
-#endif
