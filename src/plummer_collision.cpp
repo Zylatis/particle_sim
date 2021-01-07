@@ -28,13 +28,7 @@ int main ( int argc, char *argv[] ){
 	init_universe(universe, config.n_particles, dim);
 	mass = universe.mass; // TODO: sample from dist, probably in particular init function 
 
-	Region sim_region;
-	sim_region.xmax = region_size;
-	sim_region.xmin = -region_size;
-	sim_region.ymax = region_size;
-	sim_region.ymin = -region_size;
-	sim_region.zmax = region_size;
-	sim_region.zmin = -region_size;
+	array<current_dtype, 6> sim_region = {-region_size, region_size,-region_size, region_size,-region_size, region_size};
 
 	string out_folder;
 
@@ -84,12 +78,11 @@ int main ( int argc, char *argv[] ){
 	while(t<tmax){
 		switch(method) {
 			case direct:
-				leapfrog_step_strided(universe.strided_pos, universe.strided_vel, universe.strided_force, dt, n, sim_region, file_n);
+				leapfrog_step_strided(universe.strided_pos, universe.strided_vel, universe.strided_force, dt, n, sim_region,file_n);
 				out_folder = "output/data/data_direct/";
 				break;
 			case barnes_hutt:
 				leapfrog_step_strided_BH(universe, dt, sim_region, file_n, node_pool);
-				// leapfrog_step_strided_BH(universe.strided_pos, universe.strided_vel, universe.strided_force, dt, n, sim_region, file_n, node_pool);
 				out_folder = "output/data/data_bh/";
 				break;
 			default:

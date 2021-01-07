@@ -1,8 +1,8 @@
 #pragma once
 
-struct Region {
-	    current_dtype xmin, xmax, ymin, ymax, zmin, zmax; // Doesn't really gel well with variable dim but meh
-	};
+// struct Region {
+// 	    current_dtype xmin, xmax, ymin, ymax, zmin, zmax; // Doesn't really gel well with variable dim but meh
+// 	};
 
 struct Universe {
 	vector<current_dtype> strided_pos;
@@ -22,11 +22,11 @@ void init_universe(Universe &universe, int n_particles, int dim){
 	universe.strided_force.resize(n);
 }
 
-bool particleInRegion(double x, double y, double z, const Region &region){ // Should really call this from Barnes Hutt routine too 
-	return (x<= region.xmax && x> region.xmin && y <= region.ymax && y > region.ymin && z <= region.zmax && z> region.zmin);
+bool particleInRegion(double x, double y, double z, const array<current_dtype, 6> &region){ // Should really call this from Barnes Hutt routine too 
+	return (x<= region[1] && x> region[0] && y <= region[3] && y > region[2] && z <= region[5] && z> region[4]);
 }
 
-vector<vector<current_dtype> > init(  default_random_engine &rands, const vector<current_dtype> &centre, const vector<current_dtype> &centre_V, const Region &sim_region ){
+vector<vector<current_dtype> > init(  default_random_engine &rands, const vector<current_dtype> &centre, const vector<current_dtype> &centre_V,  array<current_dtype, 6> &sim_region ){
 	
 	vector<vector< current_dtype> > data = {vector<current_dtype>(3,0), vector<current_dtype>(3,0)};
 

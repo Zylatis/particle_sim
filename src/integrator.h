@@ -6,8 +6,9 @@
 // #include <easy/profiler.h>
 
 
-bool particleInRegion2(double x, double y, double z, const Region &region){ // Should really call this from Barnes Hutt routine too 
-	return (x<= region.xmax && x> region.xmin && y <= region.ymax && y > region.ymin && z <= region.zmax && z> region.zmin);
+bool particleInRegion2(double x, double y, double z,  const array<current_dtype, 6> &region){ // Should really call this from Barnes Hutt routine too 
+	// return (x<= region.xmax && x> region.xmin && y <= region.ymax && y > region.ymin && z <= region.zmax && z> region.zmin);
+	return (x<= region[1] && x> region[0] && y <= region[3] && y > region[2] && z <= region[5] && z> region[4]);
 }
 
 #define likely(x)       __builtin_expect(!!(x), 1)
@@ -46,14 +47,14 @@ void calc_force_strided( const vector<current_dtype> &strided_pos_vec, vector<cu
 	}	
 }
 
-void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_force, int n, const Region &sim_region, NodePool<OctreeNode> &node_pool){
+void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< current_dtype > &strided_force, int n, const array<current_dtype, 6> &sim_region, NodePool<OctreeNode> &node_pool){
 	// EASY_FUNCTION();
 	fill(strided_force.begin(), strided_force.end(),0.);
 
 	vector<OctreeNode*> node_map(n);
 	vector<OctreeNode*> node_list;
 	
-	OctreeNode* root_node = new (node_pool.get()) OctreeNode(sim_region.xmin, sim_region.xmax, sim_region.ymin, sim_region.ymax, sim_region.zmin, sim_region.zmax);
+	OctreeNode* root_node = new (node_pool.get()) OctreeNode(sim_region);
 
 	node_list.push_back(root_node);
 	for(int i = 0;i<n;i++){
@@ -69,7 +70,7 @@ void barnes_hutt_force_step(const vector< current_dtype > &strided_pos, vector< 
 	node_pool.reset();
 }
 
-void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n){
+void leapfrog_step_strided( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, const array<current_dtype, 6> &sim_region, int file_n){
 
 	#pragma omp parallel for
 	for(int i = 0; i<n; i++){
@@ -110,7 +111,7 @@ void leapfrog_init_step_strided_BH(
 		vector< current_dtype > &strided_force,
 		current_dtype dt,
 		int n,
-		const Region &sim_region,
+		const array<current_dtype, 6> &sim_region,
 		NodePool<OctreeNode> &node_pool
 	){
 
@@ -124,7 +125,7 @@ void leapfrog_init_step_strided_BH(
 }
 
 // Debug purposes
-void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, Region &sim_region, int file_n,
+void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< current_dtype > &strided_vel, vector< current_dtype > &strided_force, current_dtype dt, int n, const array<current_dtype, 6> &sim_region, int file_n,
 	 NodePool<OctreeNode> &node_pool
 	){
 
@@ -153,7 +154,7 @@ void leapfrog_step_strided_BH( vector< current_dtype > &strided_pos, vector< cur
 }
 
 // Debug purposes
-void leapfrog_step_strided_BH( Universe &universe, current_dtype dt, Region &sim_region, int file_n, NodePool<OctreeNode> &node_pool){
+void leapfrog_step_strided_BH( Universe &universe, current_dtype dt, const array<current_dtype, 6> &sim_region, int file_n, NodePool<OctreeNode> &node_pool){
 
 	#pragma omp parallel for
 	for(int i = 0; i<universe.n_particles; i++){

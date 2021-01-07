@@ -52,8 +52,8 @@ class OctreeNode {
 		// Boundary of octant
 		// double xmin, xmax, ymin, ymax, zmin, zmax, s; // Should really store in an array
 		double s;
-		array<current_dtype> boundaries(8,0.); 
-		double theta = 0.0; // TODO: move to config or solver type init, or to calc_force 
+		array<current_dtype, 6> boundaries; 
+		double theta = 0.5; // TODO: move to config or solver type init, or to calc_force 
 	public:	
 		// CoM for particles in octant
 		array<double,3> centre_of_mass;
@@ -72,16 +72,16 @@ class OctreeNode {
 		void reset(){
 			children = {};
 			centre_of_mass = {};
-			fill(boundaries.begin(), boundaries.end(),0.);
+			fill(boundaries.begin(), boundaries.end(), 0.);
 
 			s = 0;
 		}
 
 		// Constructor
 		// Given that the region is always square we could refactor this to use 's' instead
-		OctreeNode(const array<current_dtype> &boundaries){
-			this->boundaries = boundaries;
-			s = boundaries[1] - boundaries[1];
+		OctreeNode(const array<current_dtype, 6> &inc_boundaries){
+			this->boundaries = inc_boundaries;
+			s = boundaries[1] - boundaries[0];
 		};
 
 		~OctreeNode(){
@@ -91,34 +91,35 @@ class OctreeNode {
 					delete node;
 				}
 			}
-			// children = {}; // seems to add memory overhead and probably isn't needed?
-
 		}
 
-		// void printBoundaries(){
-		// 	cout<<xmin<<"\t"<<xmax<<endl;
-		// 	cout<<ymin<<"\t"<<ymax<<endl;
-		// 	cout<<zmin<<"\t"<<zmax<<endl;
-		// 	cout<<endl;
-		// }
 
-		// Subdivide a given 3D space into octants
-		vector<vector<double>> calcOctants(){
+		vector<array<current_dtype, 6> > calcOctants(){
+			// Subdivide a given 3D space into octants
+			// TODO: tidy
 			double dx = s/2.;
 			double dy = s/2.;
 			double dz = s/2.;
-			
-			vector<vector<double> > children_boxes = {
-				// TODO make flat list
-					{xmin,xmin + dx}, {ymin, ymin + dy}, {zmin, zmin + dz},
-					{xmin + dx,xmax}, {ymin, ymin + dy}, {zmin, zmin + dz},
-					{xmin,xmin + dx}, {ymin + dy, ymax}, {zmin, zmin + dz},
-					{xmin + dx,xmax}, {ymin + dy, ymax}, {zmin, zmin + dz},
+			auto xmin = boundaries[0];
+			auto xmax = boundaries[1];
 
-					{xmin,xmin + dx}, {ymin, ymin + dy}, {zmin + dz, zmax},
-					{xmin + dx,xmax}, {ymin, ymin + dy}, {zmin + dz, zmax},
-					{xmin,xmin + dx}, {ymin + dy, ymax}, {zmin + dz, zmax},
-					{xmin + dx,xmax}, {ymin + dy, ymax}, {zmin + dz, zmax}
+			auto ymin = boundaries[2];
+			auto ymax = boundaries[3];
+
+			auto zmin = boundaries[4];
+			auto zmax = boundaries[5];
+			
+			vector<array<double,6> > children_boxes = {
+				// TODO make flat list
+					{xmin,xmin + dx, ymin, ymin + dy, zmin, zmin + dz},
+					{xmin + dx,xmax, ymin, ymin + dy, zmin, zmin + dz},
+					{xmin,xmin + dx, ymin + dy, ymax, zmin, zmin + dz},
+					{xmin + dx,xmax, ymin + dy, ymax, zmin, zmin + dz},
+
+					{xmin,xmin + dx, ymin, ymin + dy, zmin + dz, zmax},
+					{xmin + dx,xmax, ymin, ymin + dy, zmin + dz, zmax},
+					{xmin,xmin + dx, ymin + dy, ymax, zmin + dz, zmax},
+					{xmin + dx,xmax, ymin + dy, ymax, zmin + dz, zmax}
 				};
 
 			return children_boxes;
@@ -126,7 +127,7 @@ class OctreeNode {
 
 		// Check if particle falls with in given octant
 		bool particleInNode(double x, double y, double z){
-			return (x<= xmax && x> xmin && y <= ymax && y > ymin && z <= zmax && z> zmin);
+			return (x<= boundaries[1] && x> boundaries[0] && y <= boundaries[3] && y > boundaries[2] && z <= boundaries[5] && z> boundaries[4]);
 		}
 
 		void calcForce(int particle, const vector<double> &strided_pos, vector<double> &strided_force){
@@ -223,13 +224,11 @@ class OctreeNode {
 					// Create new node (shock, raw pointers! Look at my face, this is my caring face. See how much I care?)
 					// TODO: use a custom memory allocator for this to avoid shitloads of allocs/deallocs
 					auto pool_mem = node_pool.get();
-					int i0 = 3*i;
-					OctreeNode *temp = new (pool_mem) OctreeNode( octants[i0 + 0][0], octants[i0 + 0][1], octants[i0 + 1][0], octants[i0 + 1][1], octants[i0 + 2][0], octants[i0 + 2][1] );
+					OctreeNode *temp = new (pool_mem) OctreeNode(octants[i]);
+					// OctreeNode *temp = new (pool_mem) OctreeNode( octants[i0 + 0][0], octants[i0 + 0][1], octants[i0 + 1][0], octants[i0 + 1][1], octants[i0 + 2][0], octants[i0 + 2][1] );
 
 					// Keep track of all our nodes mostly for book-keeping/debugging
 					node_list.push_back(temp);
-					// Set parent of those new nodes to this current node for book keeping
-					// temp->parent = this;
 
 					// Add new nodes to children list
 					children[i] = temp;
